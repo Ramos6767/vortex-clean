@@ -1,5 +1,3 @@
-// server.js
-
 require("dotenv").config();
 
 const express = require("express");
@@ -15,30 +13,15 @@ const path = require("path");
 const app = express();
 
 app.use(cors());
-
-app.use(express.json({
-  limit: "20mb"
-}));
-
+app.use(express.json({ limit: "20mb" }));
 app.use(express.static("public"));
-
-/* =========================
-   DATABASE
-========================= */
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
-/* =========================
-   CREATE TABLES
-========================= */
-
 async function createTables() {
-
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -46,7 +29,7 @@ async function createTables() {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
-    )
+    );
   `);
 
   await pool.query(`
@@ -55,7 +38,7 @@ async function createTables() {
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       title TEXT,
       created_at TIMESTAMP DEFAULT NOW()
-    )
+    );
   `);
 
   await pool.query(`
@@ -65,105 +48,56 @@ async function createTables() {
       role TEXT,
       content TEXT,
       created_at TIMESTAMP DEFAULT NOW()
-    )
+    );
   `);
 
   console.log("Banco conectado");
 }
 
-/* =========================
-   AUTH
-========================= */
-
 function auth(req, res, next) {
-
   const header = req.headers.authorization;
 
   if (!header) {
-    return res.status(401).json({
-      error: "Token ausente"
-    });
+    return res.status(401).json({ error: "Token ausente" });
   }
 
   try {
-
     const token = header.replace("Bearer ", "");
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
-
-    req.user = decoded;
-
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
-
   } catch {
-
-    return res.status(401).json({
-      error: "Token inválido"
-    });
+    return res.status(401).json({ error: "Token inválido" });
   }
 }
 
-/* =========================
-   HOME
-========================= */
-
 app.get("/", (req, res) => {
-
-  res.sendFile(
-    path.join(__dirname, "public", "index.html")
-  );
-
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* =========================
-   REGISTER
-========================= */
-
 app.post("/auth/register", async (req, res) => {
-
   try {
-
-    const {
-      name,
-      email,
-      password
-    } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-
-      return res.status(400).json({
-        error: "Preencha todos os campos"
-      });
-
+      return res.status(400).json({ error: "Preencha todos os campos" });
     }
 
     const exists = await pool.query(
-      `
-      SELECT * FROM users
-      WHERE email = $1
-      `,
+      "SELECT id FROM users WHERE email = $1",
       [email]
     );
 
     if (exists.rows.length) {
-
-      return res.status(400).json({
-        error: "Usuário já existe"
-      });
-
+      return res.status(400).json({ error: "Usuário já existe" });
     }
 
     const hash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
       `
-      INSERT INTO users
-      (name,email,password_hash)
-      VALUES ($1,$2,$3)
-      RETURNING id,name,email
+      INSERT INTO users (name, email, password_hash)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email
       `,
       [name, email, hash]
     );
@@ -171,86 +105,43 @@ app.post("/auth/register", async (req, res) => {
     const user = result.rows[0];
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email
-      },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d"
-      }
+      { expiresIn: "7d" }
     );
 
-    res.json({
-      token,
-      user
-    });
-
+    res.json({ token, user });
   } catch (err) {
-
     console.log("Erro register:", err.message);
-
-    res.status(500).json({
-      error: "Erro ao cadastrar"
-    });
-
+    res.status(500).json({ error: "Erro ao cadastrar" });
   }
 });
 
-/* =========================
-   LOGIN
-========================= */
-
 app.post("/auth/login", async (req, res) => {
-
   try {
-
-    const {
-      email,
-      password
-    } = req.body;
+    const { email, password } = req.body;
 
     const result = await pool.query(
-      `
-      SELECT *
-      FROM users
-      WHERE email = $1
-      `,
+      "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
     const user = result.rows[0];
 
     if (!user) {
-
-      return res.status(400).json({
-        error: "Usuário não encontrado"
-      });
-
+      return res.status(400).json({ error: "Usuário não encontrado" });
     }
 
-    const valid = await bcrypt.compare(
-      password,
-      user.password_hash
-    );
+    const valid = await bcrypt.compare(password, user.password_hash);
 
     if (!valid) {
-
-      return res.status(400).json({
-        error: "Senha inválida"
-      });
-
+      return res.status(400).json({ error: "Senha inválida" });
     }
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email
-      },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d"
-      }
+      { expiresIn: "7d" }
     );
 
     res.json({
@@ -261,29 +152,17 @@ app.post("/auth/login", async (req, res) => {
         email: user.email
       }
     });
-
   } catch (err) {
-
     console.log("Erro login:", err.message);
-
-    res.status(500).json({
-      error: "Erro ao logar"
-    });
-
+    res.status(500).json({ error: "Erro ao logar" });
   }
 });
 
-/* =========================
-   GET CHATS
-========================= */
-
 app.get("/chats", auth, async (req, res) => {
-
   try {
-
     const result = await pool.query(
       `
-      SELECT *
+      SELECT id, title, created_at
       FROM chats
       WHERE user_id = $1
       ORDER BY created_at DESC
@@ -292,25 +171,16 @@ app.get("/chats", auth, async (req, res) => {
     );
 
     res.json(result.rows);
-
   } catch {
-
     res.json([]);
-
   }
 });
 
-/* =========================
-   GET MESSAGES
-========================= */
-
 app.get("/chats/:id/messages", auth, async (req, res) => {
-
   try {
-
     const result = await pool.query(
       `
-      SELECT *
+      SELECT role, content, created_at
       FROM messages
       WHERE chat_id = $1
       ORDER BY created_at ASC
@@ -319,91 +189,57 @@ app.get("/chats/:id/messages", auth, async (req, res) => {
     );
 
     res.json(result.rows);
-
   } catch {
-
     res.json([]);
-
   }
 });
 
-/* =========================
-   UPLOAD
-========================= */
+const upload = multer({ dest: "uploads/" });
 
-const upload = multer({
-  dest: "uploads/"
-});
-
-app.post(
-  "/upload",
-  auth,
-  upload.single("file"),
-  async (req, res) => {
-
-    try {
-
-      if (!req.file) {
-
-        return res.json({
-          error: "Arquivo não enviado"
-        });
-
-      }
-
-      const text = fs.readFileSync(
-        req.file.path,
-        "utf-8"
-      );
-
-      fs.unlinkSync(req.file.path);
-
-      res.json({
-        filename: req.file.originalname,
-        text: text.slice(0, 12000)
-      });
-
-    } catch (err) {
-
-      console.log(err);
-
-      res.status(500).json({
-        error: "Erro upload"
-      });
-
+app.post("/upload", auth, upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.json({ error: "Arquivo não enviado" });
     }
-  }
-);
 
-/* =========================
-   CHAT STREAM
-========================= */
+    const text = fs.readFileSync(req.file.path, "utf-8");
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      filename: req.file.originalname,
+      text: text.slice(0, 12000)
+    });
+  } catch {
+    res.status(500).json({ error: "Erro upload" });
+  }
+});
 
 app.post("/chat/stream", auth, async (req, res) => {
-
   try {
+    const { message, chatId, fileContext } = req.body;
 
-    const {
-      message,
-      chatId,
-      fileContext
-    } = req.body;
+    if (!message) {
+      return res.status(400).end("Mensagem vazia.");
+    }
+
+    if (!process.env.OPENROUTER_API_KEY) {
+      return res.status(500).end("OPENROUTER_API_KEY não configurada no Railway.");
+    }
+
+    if (!process.env.MODEL) {
+      return res.status(500).end("MODEL não configurado no Railway.");
+    }
 
     let currentChatId = chatId;
 
     if (!currentChatId) {
-
       const chat = await pool.query(
         `
-        INSERT INTO chats
-        (user_id,title)
-        VALUES ($1,$2)
-        RETURNING *
+        INSERT INTO chats (user_id, title)
+        VALUES ($1, $2)
+        RETURNING id
         `,
-        [
-          req.user.id,
-          message.substring(0, 40)
-        ]
+        [req.user.id, message.substring(0, 40)]
       );
 
       currentChatId = chat.rows[0].id;
@@ -411,20 +247,15 @@ app.post("/chat/stream", auth, async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO messages
-      (chat_id,role,content)
-      VALUES ($1,$2,$3)
+      INSERT INTO messages (chat_id, role, content)
+      VALUES ($1, $2, $3)
       `,
-      [
-        currentChatId,
-        "user",
-        message
-      ]
+      [currentChatId, "user", message]
     );
 
     const oldMessages = await pool.query(
       `
-      SELECT role,content
+      SELECT role, content
       FROM messages
       WHERE chat_id = $1
       ORDER BY created_at ASC
@@ -441,12 +272,10 @@ app.post("/chat/stream", auth, async (req, res) => {
       {
         role: "system",
         content:
-          "Você é a Vortex AI, uma IA futurista inteligente. Responda em português de forma clara."
+          "Você é a Vortex AI, uma IA futurista inteligente. Responda em português de forma clara, útil e organizada."
       },
-      ...oldMessages.rows.map(msg => ({
-        role: msg.role === "assistant"
-          ? "assistant"
-          : "user",
+      ...oldMessages.rows.slice(0, -1).map((msg) => ({
+        role: msg.role === "assistant" ? "assistant" : "user",
         content: msg.content
       })),
       {
@@ -455,140 +284,81 @@ app.post("/chat/stream", auth, async (req, res) => {
       }
     ];
 
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Transfer-Encoding", "chunked");
+
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model:
-          process.env.MODEL ||
-          "openai/gpt-3.5-turbo",
-
+        model: process.env.MODEL,
         stream: true,
-
         messages
       },
       {
         responseType: "stream",
-
         headers: {
-          Authorization:
-            `Bearer ${process.env.OPENROUTER_API_KEY}`,
-
-          "Content-Type":
-            "application/json"
-        }
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://vortex-clean-production.up.railway.app",
+          "X-Title": "Vortex AI"
+        },
+        timeout: 60000
       }
-    );
-
-    res.setHeader(
-      "Content-Type",
-      "text/plain; charset=utf-8"
-    );
-
-    res.setHeader(
-      "Transfer-Encoding",
-      "chunked"
     );
 
     let fullReply = "";
 
-    response.data.on("data", async chunk => {
-
-      const lines = chunk
-        .toString()
-        .split("\n");
+    response.data.on("data", (chunk) => {
+      const lines = chunk.toString().split("\n");
 
       for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
 
-        if (!line.startsWith("data: "))
-          continue;
+        const data = line.replace("data: ", "").trim();
 
-        const data = line.replace(
-          "data: ",
-          ""
-        );
-
-        if (data === "[DONE]")
-          continue;
+        if (data === "[DONE]") continue;
 
         try {
-
           const json = JSON.parse(data);
-
-          const content =
-            json.choices?.[0]?.delta?.content || "";
+          const content = json.choices?.[0]?.delta?.content || "";
 
           if (content) {
-
             fullReply += content;
-
             res.write(content);
-
           }
-
         } catch {}
-
       }
-
     });
 
     response.data.on("end", async () => {
+      try {
+        await pool.query(
+          `
+          INSERT INTO messages (chat_id, role, content)
+          VALUES ($1, $2, $3)
+          `,
+          [currentChatId, "assistant", fullReply]
+        );
+      } catch {}
 
-      await pool.query(
-        `
-        INSERT INTO messages
-        (chat_id,role,content)
-        VALUES ($1,$2,$3)
-        `,
-        [
-          currentChatId,
-          "assistant",
-          fullReply
-        ]
-      );
-
-      res.end(
-        `[[CHAT_ID:${currentChatId}]]`
-      );
-
+      res.end(`\n[[CHAT_ID:${currentChatId}]]`);
     });
 
     response.data.on("error", () => {
-
-      res.end(
-        "Erro ao conectar com a Vortex."
-      );
-
+      res.end("\nErro no streaming da Vortex.");
     });
-
   } catch (err) {
-
-    console.log(
-      "Erro OpenRouter:",
-      err.response?.data || err.message
-    );
-
-    res.status(500).end(
-      "Erro ao conectar com a Vortex."
-    );
-
+    console.log("Erro OpenRouter:", err.message);
+    res.status(500).end("Erro ao conectar com a Vortex.");
   }
 });
 
-/* =========================
-   START
-========================= */
-
-createTables().then(() => {
-
-  app.listen(
-    process.env.PORT || 3000,
-    () => {
-
-      console.log(
-        "Vortex online"
-      );
-
-    }
-  );
-
-});
+createTables()
+  .then(() => {
+    app.listen(process.env.PORT || 3000, () => {
+      console.log("Vortex online");
+    });
+  })
+  .catch((err) => {
+    console.log("Erro ao iniciar:", err.message);
+  });

@@ -140,7 +140,7 @@ function addMessage(role, text) {
     copy.textContent = "Copiar";
 
     copy.onclick = async () => {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(content.innerText);
       copy.textContent = "Copiado";
       setTimeout(() => copy.textContent = "Copiar", 1200);
     };
@@ -289,9 +289,7 @@ async function sendMessage(message) {
       }
 
       fullText += chunk;
-
       aiContent.innerHTML = marked.parse(fullText);
-
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 

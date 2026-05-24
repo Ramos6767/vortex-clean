@@ -688,3 +688,40 @@ form input{
     height:50px;
   }
 }
+/* FIX LAYOUT VORTEX */
+
+body{
+  display:flex !important;
+  height:100vh !important;
+  overflow:hidden !important;
+}
+
+.sidebar{
+  width:330px !important;
+  min-width:330px !important;
+  height:100vh !important;
+}
+
+main{
+  flex:1 !important;
+  height:100vh !important;
+  display:flex !important;
+  flex-direction:column !important;
+  padding:26px !important;
+}
+
+header{
+  width:100% !important;
+  position:relative !important;
+  top:0 !important;
+}
+
+.chat-area{
+  flex:1 !important;
+  width:100% !important;
+}
+
+form{
+  position:relative !important;
+  bottom:auto !important;
+}

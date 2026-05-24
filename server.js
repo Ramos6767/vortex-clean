@@ -101,7 +101,9 @@ function auth(req, res, next) {
     return res.status(401).json({
       error: "Token inválido"
     });
+
   }
+
 }
 
 /* =========================
@@ -117,14 +119,13 @@ app.get("/", (req, res) => {
 });
 
 /* =========================
-   TEST ROUTE
+   TEST
 ========================= */
 
 app.get("/test", (req, res) => {
 
   res.json({
     ok: true,
-    message: "Servidor Vortex funcionando",
     model: process.env.MODEL || null,
     hasKey: !!process.env.OPENROUTER_API_KEY,
     hasDatabase: !!process.env.DATABASE_URL,
@@ -203,13 +204,14 @@ app.post("/auth/register", async (req, res) => {
 
   } catch (err) {
 
-    console.log("Erro register:", err.message);
+    console.log(err.message);
 
     res.status(500).json({
       error: "Erro ao cadastrar"
     });
 
   }
+
 });
 
 /* =========================
@@ -279,13 +281,14 @@ app.post("/auth/login", async (req, res) => {
 
   } catch (err) {
 
-    console.log("Erro login:", err.message);
+    console.log(err.message);
 
     res.status(500).json({
-      error: "Erro ao logar"
+      error: "Erro login"
     });
 
   }
+
 });
 
 /* =========================
@@ -313,6 +316,41 @@ app.get("/chats", auth, async (req, res) => {
     res.json([]);
 
   }
+
+});
+
+/* =========================
+   DELETE CHAT
+========================= */
+
+app.delete("/chats/:id", auth, async (req, res) => {
+
+  try {
+
+    await pool.query(
+      `
+      DELETE FROM chats
+      WHERE id = $1
+      AND user_id = $2
+      `,
+      [
+        req.params.id,
+        req.user.id
+      ]
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch {
+
+    res.json({
+      success: false
+    });
+
+  }
+
 });
 
 /* =========================
@@ -340,6 +378,7 @@ app.get("/chats/:id/messages", auth, async (req, res) => {
     res.json([]);
 
   }
+
 });
 
 /* =========================
@@ -378,15 +417,14 @@ app.post(
         text: text.slice(0, 12000)
       });
 
-    } catch (err) {
-
-      console.log(err);
+    } catch {
 
       res.status(500).json({
         error: "Erro upload"
       });
 
     }
+
   }
 );
 
@@ -405,11 +443,11 @@ app.post("/chat/stream", auth, async (req, res) => {
     } = req.body;
 
     if (!process.env.OPENROUTER_API_KEY) {
-      return res.status(500).end("OPENROUTER_API_KEY não configurada.");
+      return res.status(500).end("OPENROUTER_API_KEY ausente");
     }
 
     if (!process.env.MODEL) {
-      return res.status(500).end("MODEL não configurado.");
+      return res.status(500).end("MODEL ausente");
     }
 
     let currentChatId = chatId;
@@ -430,6 +468,7 @@ app.post("/chat/stream", auth, async (req, res) => {
       );
 
       currentChatId = chat.rows[0].id;
+
     }
 
     await pool.query(
@@ -508,7 +547,7 @@ app.post("/chat/stream", auth, async (req, res) => {
 
     let fullReply = "";
 
-    response.data.on("data", async chunk => {
+    response.data.on("data", chunk => {
 
       const lines = chunk
         .toString()
@@ -589,6 +628,7 @@ app.post("/chat/stream", auth, async (req, res) => {
     );
 
   }
+
 });
 
 /* =========================
@@ -601,9 +641,7 @@ createTables().then(() => {
     process.env.PORT || 3000,
     () => {
 
-      console.log(
-        "Vortex online"
-      );
+      console.log("Vortex online");
 
     }
   );

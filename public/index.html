@@ -4,20 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VORTEX AI</title>
-
   <link rel="stylesheet" href="style.css"/>
-
 </head>
-<body>
 
+<body>
 <div class="app">
 
-  <!-- SIDEBAR -->
-
-  <aside class="sidebar">
-
+  <aside class="sidebar" id="sidebar">
     <div class="logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+      <div class="logo-icon">🌀</div>
       <h1>VORTEX</h1>
     </div>
 
@@ -28,84 +23,49 @@
     <input
       type="text"
       class="search"
+      id="searchInput"
       placeholder="Buscar conversa..."
     />
 
-    <div class="section-title">
-      Conversas
-    </div>
+    <div class="section-title">Conversas</div>
 
-    <div class="chat-list" id="chatList">
-
-    </div>
+    <div class="chat-list" id="chatList"></div>
 
     <div class="user-box">
-
       <div class="user-left">
-
-        <div class="avatar">
-          G
-        </div>
-
+        <div class="avatar" id="userAvatar">G</div>
         <div>
-          <strong>Gabriel</strong>
-          <p style="font-size:12px;color:#9ca3af;">
-            Plano Free
-          </p>
+          <strong id="userName">Gabriel</strong>
+          <p>Plano Free</p>
         </div>
-
       </div>
 
-      <button
-        onclick="logout()"
-        style="
-        background:none;
-        border:none;
-        color:white;
-        cursor:pointer;
-        "
-      >
-        Sair
-      </button>
-
+      <button class="logout-btn" onclick="logout()">Sair</button>
     </div>
-
   </aside>
 
-  <!-- MAIN -->
-
   <main class="main">
-
-    <!-- TOPBAR -->
-
     <header class="topbar">
-
       <div class="top-left">
-
-        <button class="menu-btn">
-          ☰
-        </button>
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
         <div class="chat-title">
           <h2>VORTEX Chat</h2>
-          <div class="online">
-            ● Online
-          </div>
+          <div class="online">● Online</div>
         </div>
-
       </div>
-
     </header>
 
-    <!-- CHAT -->
+    <div class="chat-container" id="chatContainer"></div>
 
-    <div class="chat-container" id="chatContainer">
-
-    </div>
-
-    <!-- INPUT -->
+    <div class="file-preview" id="filePreview"></div>
 
     <div class="chat-input">
+      <button class="attach-btn" onclick="document.getElementById('fileInput').click()">
+        📎
+      </button>
+
+      <input type="file" id="fileInput" hidden accept=".txt,.pdf,.docx,.js,.html,.css,.json,.md"/>
 
       <input
         type="text"
@@ -113,20 +73,15 @@
         placeholder="Digite sua mensagem..."
       />
 
-      <button
-        class="send-btn"
-        onclick="sendMessage()"
-      >
+      <button class="send-btn" onclick="sendMessage()">
         ➤
       </button>
-
     </div>
-
   </main>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="app.js"></script>
-
 </body>
 </html>

@@ -9,7 +9,6 @@ const jwt = require("jsonwebtoken");
 const { Pool } = require("pg");
 const multer = require("multer");
 const fs = require("fs");
-const path = require("path");
 
 const app = express();
 
@@ -63,11 +62,11 @@ async function createTables() {
     )
   `);
 
-  console.log("Tabelas prontas");
+  console.log("Tabelas criadas");
 }
 
 /* =========================
-   AUTH
+   AUTH MIDDLEWARE
 ========================= */
 
 function auth(req, res, next) {
@@ -105,7 +104,7 @@ function auth(req, res, next) {
    REGISTER
 ========================= */
 
-app.post("/register", async (req, res) => {
+app.post("/auth/register", async (req, res) => {
 
   try {
 
@@ -114,6 +113,20 @@ app.post("/register", async (req, res) => {
       email,
       password
     } = req.body;
+
+    const userExists = await pool.query(
+      `
+      SELECT * FROM users
+      WHERE email = $1
+      `,
+      [email]
+    );
+
+    if (userExists.rows.length) {
+      return res.status(400).json({
+        error: "Usuário já existe"
+      });
+    }
 
     const hash = await bcrypt.hash(password, 10);
 
@@ -139,7 +152,8 @@ app.post("/register", async (req, res) => {
     );
 
     res.json({
-      token
+      token,
+      name: user.rows[0].name
     });
 
   } catch (err) {
@@ -156,7 +170,7 @@ app.post("/register", async (req, res) => {
    LOGIN
 ========================= */
 
-app.post("/login", async (req, res) => {
+app.post("/auth/login", async (req, res) => {
 
   try {
 
@@ -217,7 +231,7 @@ app.post("/login", async (req, res) => {
 });
 
 /* =========================
-   CHATS
+   GET CHATS
 ========================= */
 
 app.get("/chats", auth, async (req, res) => {
@@ -255,7 +269,7 @@ app.get("/chats/:id/messages", auth, async (req, res) => {
 });
 
 /* =========================
-   STREAM CHAT
+   CHAT STREAM
 ========================= */
 
 app.post("/chat/stream", auth, async (req, res) => {
@@ -309,16 +323,18 @@ app.post("/chat/stream", auth, async (req, res) => {
       `[[CHAT_ID:${currentChatId}]]`
     );
 
-    const fakeResponse =
-      "Olá 👋 Sou a Vortex AI. Sua IA futurista está funcionando perfeitamente.";
+    // RESPOSTA TESTE
+
+    const responseText =
+      "Olá 👋 Sou a Vortex AI futurista. Agora estou online no Railway funcionando em tempo real.";
 
     let i = 0;
 
     const interval = setInterval(async () => {
 
-      if (i < fakeResponse.length) {
+      if (i < responseText.length) {
 
-        res.write(fakeResponse[i]);
+        res.write(responseText[i]);
 
         i++;
 
@@ -335,18 +351,18 @@ app.post("/chat/stream", auth, async (req, res) => {
           [
             currentChatId,
             "assistant",
-            fakeResponse
+            responseText
           ]
         );
 
         res.end();
       }
 
-    }, 20);
+    }, 18);
 
   } catch (err) {
 
-    console.log(err);
+    console.log("Erro chat:", err.message);
 
     res.status(500).json({
       error: "Erro chat"
@@ -384,7 +400,9 @@ app.post(
         text
       });
 
-    } catch {
+    } catch (err) {
+
+      console.log(err);
 
       res.status(500).json({
         error: "Erro upload"

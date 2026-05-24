@@ -1,113 +1,132 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vortex Chat</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VORTEX AI</title>
 
+  <link rel="stylesheet" href="style.css"/>
+
+</head>
 <body>
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="brand-logo">🌀</div>
-      <h1>VORTEX AI</h1>
-      <button id="closeMenu">×</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+      <h1>VORTEX</h1>
     </div>
 
-    <button class="new-chat" id="newChat">
-      <span>＋</span>
-      Nova conversa
+    <button class="new-chat" onclick="newChat()">
+      + Nova conversa
     </button>
 
-    <div class="search">
-      <span>⌕</span>
-      <input id="searchHistory" placeholder="Buscar conversas...">
+    <input
+      type="text"
+      class="search"
+      placeholder="Buscar conversa..."
+    />
+
+    <div class="section-title">
+      Conversas
     </div>
 
-    <h3 class="side-title">Conversas</h3>
+    <div class="chat-list" id="chatList">
 
-    <div class="history" id="history"></div>
+    </div>
 
-    <div class="user-card">
-      <div class="user-avatar" id="profileAvatar">G</div>
-      <div>
-        <strong id="profileName">Gabriel</strong>
-        <small>Free</small>
+    <div class="user-box">
+
+      <div class="user-left">
+
+        <div class="avatar">
+          G
+        </div>
+
+        <div>
+          <strong>Gabriel</strong>
+          <p style="font-size:12px;color:#9ca3af;">
+            Plano Free
+          </p>
+        </div>
+
       </div>
-      <button id="logoutBtn">Sair</button>
+
+      <button
+        onclick="logout()"
+        style="
+        background:none;
+        border:none;
+        color:white;
+        cursor:pointer;
+        "
+      >
+        Sair
+      </button>
+
     </div>
+
   </aside>
 
+  <!-- MAIN -->
+
   <main class="main">
+
+    <!-- TOPBAR -->
+
     <header class="topbar">
-      <button id="openMenu">☰</button>
 
-      <div class="top-title">
-        <h2>VORTEX Chat</h2>
-        <span>● Online</span>
+      <div class="top-left">
+
+        <button class="menu-btn">
+          ☰
+        </button>
+
+        <div class="chat-title">
+          <h2>VORTEX Chat</h2>
+          <div class="online">
+            ● Online
+          </div>
+        </div>
+
       </div>
 
-      <div class="top-actions">
-        <button id="exportBtn" title="Exportar conversa">⇩</button>
-        <button id="themeBtn" title="Tema">☼</button>
-        <button class="avatar" id="avatar">G</button>
-      </div>
     </header>
 
-    <section class="chat-area" id="chatArea">
-      <div class="date-pill" id="datePill">Hoje</div>
+    <!-- CHAT -->
 
-      <div class="empty-state" id="emptyState">
-        <div class="empty-logo">🌀</div>
-        <h1>Olá, <span id="helloName">Gabriel</span>!</h1>
-        <p>Como posso te ajudar hoje?</p>
+    <div class="chat-container" id="chatContainer">
 
-        <div class="suggestions">
-          <button data-prompt="Crie um código HTML, CSS e JavaScript moderno.">💻 Código</button>
-          <button data-prompt="Explique esse assunto de forma simples.">📚 Explicar</button>
-          <button data-prompt="Me dê ideias para meu projeto.">⚡ Ideias</button>
-          <button data-prompt="Resuma este texto.">📝 Resumir</button>
-        </div>
-      </div>
+    </div>
 
-      <div class="chat" id="chat"></div>
-    </section>
+    <!-- INPUT -->
 
-    <div class="file-preview" id="filePreview"></div>
+    <div class="chat-input">
 
-    <form id="form" class="composer">
-      <button type="button" class="attach" id="fileBtn">📎</button>
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Digite sua mensagem..."
+      />
 
-      <input type="file" id="fileInput" hidden accept=".txt,.pdf,.docx,.js,.html,.css,.json,.md">
+      <button
+        class="send-btn"
+        onclick="sendMessage()"
+      >
+        ➤
+      </button>
 
-      <input id="input" placeholder="Digite sua mensagem..." autocomplete="off">
+    </div>
 
-      <button type="button" class="stop-btn" id="stopBtn">■</button>
-
-      <button class="send" type="submit">➤</button>
-    </form>
-
-    <p class="warning">A VORTEX pode cometer erros. Verifique informações importantes.</p>
   </main>
 
-  <div class="theme-modal" id="themeModal">
-    <div class="theme-box">
-      <div class="theme-head">
-        <h3>Escolha a cor</h3>
-        <button id="closeTheme">×</button>
-      </div>
+</div>
 
-      <div class="theme-grid">
-        <button data-theme="purple">🟣 Roxo</button>
-        <button data-theme="blue">🔵 Azul</button>
-        <button data-theme="green">🟢 Verde</button>
-        <button data-theme="red">🔴 Vermelho</button>
-      </div>
-    </div>
-  </div>
+<script src="app.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="app.js"></script>
 </body>
 </html>

@@ -1,67 +1,18 @@
 const API = "";
 
-const user = JSON.parse(localStorage.getItem("user") || "{}");
 const token = localStorage.getItem("token");
+const user = JSON.parse(localStorage.getItem("user") || "{}");
 
 if (!token) {
-  location.href = "/login.html";
+  window.location.href = "/login.html";
 }
 
-const form = document.getElementById("form");
-const input = document.getElementById("input");
-const chat = document.getElementById("chat");
-const chatArea = document.getElementById("chatArea");
-const emptyState = document.getElementById("emptyState");
-const historyBox = document.getElementById("history");
-const searchHistory = document.getElementById("searchHistory");
-
-const newChat = document.getElementById("newChat");
-const openMenu = document.getElementById("openMenu");
-const closeMenu = document.getElementById("closeMenu");
-const sidebar = document.getElementById("sidebar");
-
-const themeBtn = document.getElementById("themeBtn");
-const themeModal = document.getElementById("themeModal");
-const closeTheme = document.getElementById("closeTheme");
-
-const exportBtn = document.getElementById("exportBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const avatar = document.getElementById("avatar");
-const profileAvatar = document.getElementById("profileAvatar");
-const profileName = document.getElementById("profileName");
-const helloName = document.getElementById("helloName");
-
-const stopBtn = document.getElementById("stopBtn");
-const fileBtn = document.getElementById("fileBtn");
-const fileInput = document.getElementById("fileInput");
-const filePreview = document.getElementById("filePreview");
+const chatContainer = document.getElementById("chatContainer");
+const messageInput = document.getElementById("messageInput");
+const chatList = document.getElementById("chatList");
 
 let currentChatId = null;
 let allChats = [];
-let currentMessages = [];
-let uploadedText = "";
-let uploadedFileName = "";
-let controller = null;
-
-function getUserName() {
-  return user?.name || user?.email?.split("@")[0] || "Gabriel";
-}
-
-function getInitial() {
-  return getUserName().trim().slice(0, 1).toUpperCase();
-}
-
-function setupUser() {
-  const name = getUserName();
-
-  avatar.textContent = getInitial();
-  profileAvatar.textContent = getInitial();
-  profileName.textContent = name;
-  helloName.textContent = name.split(" ")[0];
-}
-
-setupUser();
 
 function authHeaders() {
   return {
@@ -76,97 +27,34 @@ function onlyAuthHeader() {
   };
 }
 
-function formatDate(dateString) {
-  const d = new Date(dateString);
-
-  return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
-
-function formatHour(date = new Date()) {
-  return date.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
-
-function clearEmpty() {
-  emptyState.style.display = "none";
-}
-
-function showEmpty() {
-  emptyState.style.display = "block";
+function scrollBottom() {
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function addMessage(role, text) {
-  clearEmpty();
-
-  const message = document.createElement("div");
-  message.className = `message ${role}`;
+  const div = document.createElement("div");
+  div.className = `message ${role === "assistant" ? "bot" : "user"}`;
 
   if (role === "assistant") {
-    const avatarEl = document.createElement("div");
-    avatarEl.className = "msg-avatar";
-    avatarEl.textContent = "🌀";
-    message.appendChild(avatarEl);
+    const avatar = document.createElement("div");
+    avatar.className = "bot-avatar";
+    avatar.textContent = "🌀";
+    div.appendChild(avatar);
   }
 
-  const box = document.createElement("div");
-  box.className = "msg-box";
-
-  const time = document.createElement("div");
-  time.className = "msg-time";
-  time.textContent = formatHour();
-
   const content = document.createElement("div");
-  content.className = "msg-content";
+  content.className = "message-content";
 
-  if (role === "assistant") {
+  if (role === "assistant" && window.marked) {
     content.innerHTML = marked.parse(text || "");
   } else {
     content.textContent = text || "";
   }
 
-  box.appendChild(time);
-  box.appendChild(content);
+  div.appendChild(content);
+  chatContainer.appendChild(div);
 
-  if (role === "assistant") {
-    const actions = document.createElement("div");
-    actions.className = "msg-actions";
-
-    const copy = document.createElement("button");
-    copy.textContent = "Copiar";
-
-    copy.onclick = async () => {
-      await navigator.clipboard.writeText(content.innerText);
-      copy.textContent = "Copiado";
-      setTimeout(() => copy.textContent = "Copiar", 1200);
-    };
-
-    const like = document.createElement("button");
-    like.textContent = "👍";
-
-    const dislike = document.createElement("button");
-    dislike.textContent = "👎";
-
-    actions.appendChild(copy);
-    actions.appendChild(like);
-    actions.appendChild(dislike);
-
-    box.appendChild(actions);
-  }
-
-  message.appendChild(box);
-  chat.appendChild(message);
-
-  currentMessages.push({
-    role: role === "assistant" ? "Vortex" : "Você",
-    content: text
-  });
-
-  chatArea.scrollTop = chatArea.scrollHeight;
+  scrollBottom();
 
   return content;
 }
@@ -178,48 +66,38 @@ async function loadChats() {
     });
 
     allChats = await res.json();
-
     renderChats(allChats);
   } catch {
-    historyBox.innerHTML = "";
+    chatList.innerHTML = "";
   }
 }
 
-function renderChats(list) {
-  historyBox.innerHTML = "";
+function renderChats(chats) {
+  chatList.innerHTML = "";
 
-  list.forEach(item => {
-    const div = document.createElement("div");
-    div.className = `chat-card ${item.id === currentChatId ? "active" : ""}`;
+  chats.forEach(chat => {
+    const item = document.createElement("div");
+    item.className = "chat-item";
 
-    div.innerHTML = `
-      <h4>${item.title || "Nova conversa"}</h4>
-      <span>${formatDate(item.created_at)}</span>
+    const date = new Date(chat.created_at);
+
+    item.innerHTML = `
+      <h3>${chat.title || "Nova conversa"}</h3>
+      <p>${date.toLocaleDateString("pt-BR")} ${date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      })}</p>
     `;
 
-    div.onclick = () => {
-      openChat(item.id);
-    };
+    item.onclick = () => openChat(chat.id);
 
-    historyBox.appendChild(div);
+    chatList.appendChild(item);
   });
 }
 
-searchHistory.addEventListener("input", () => {
-  const term = searchHistory.value.toLowerCase().trim();
-
-  const filtered = allChats.filter(chat =>
-    (chat.title || "").toLowerCase().includes(term)
-  );
-
-  renderChats(filtered);
-});
-
 async function openChat(id) {
   currentChatId = id;
-  currentMessages = [];
-  chat.innerHTML = "";
-  clearEmpty();
+  chatContainer.innerHTML = "";
 
   try {
     const res = await fetch(`${API}/chats/${id}/messages`, {
@@ -229,26 +107,23 @@ async function openChat(id) {
     const messages = await res.json();
 
     messages.forEach(msg => {
-      addMessage(
-        msg.role === "assistant" ? "assistant" : "user",
-        msg.content
-      );
+      addMessage(msg.role, msg.content);
     });
-
-    renderChats(allChats);
   } catch {
     addMessage("assistant", "Erro ao abrir conversa.");
   }
 }
 
-async function sendMessage(message) {
+async function sendMessage() {
+  const message = messageInput.value.trim();
+
+  if (!message) return;
+
+  messageInput.value = "";
+
   addMessage("user", message);
 
-  const aiContent = addMessage("assistant", "");
-  aiContent.innerHTML = "Pensando...";
-
-  controller = new AbortController();
-  stopBtn.style.display = "block";
+  const botContent = addMessage("assistant", "Pensando...");
 
   try {
     const res = await fetch(`${API}/chat/stream`, {
@@ -256,23 +131,20 @@ async function sendMessage(message) {
       headers: authHeaders(),
       body: JSON.stringify({
         message,
-        chatId: currentChatId,
-        fileContext: uploadedText
-          ? `Arquivo: ${uploadedFileName}\n\n${uploadedText}`
-          : ""
-      }),
-      signal: controller.signal
+        chatId: currentChatId
+      })
     });
 
     if (!res.ok) {
-      throw new Error("Erro HTTP");
+      botContent.textContent = "Erro ao conectar com a Vortex.";
+      return;
     }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
 
     let fullText = "";
-    aiContent.innerHTML = "";
+    botContent.textContent = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -289,164 +161,47 @@ async function sendMessage(message) {
       }
 
       fullText += chunk;
-      aiContent.innerHTML = marked.parse(fullText);
-      chatArea.scrollTop = chatArea.scrollHeight;
+
+      if (window.marked) {
+        botContent.innerHTML = marked.parse(fullText);
+      } else {
+        botContent.textContent = fullText;
+      }
+
+      scrollBottom();
     }
-
-    const last = currentMessages[currentMessages.length - 1];
-
-    if (last && last.role === "Vortex") {
-      last.content = fullText;
-    }
-
-    uploadedText = "";
-    uploadedFileName = "";
-    filePreview.innerHTML = "";
 
     await loadChats();
-  } catch (err) {
-    if (err.name === "AbortError") {
-      aiContent.innerHTML = marked.parse("Resposta interrompida.");
-    } else {
-      aiContent.innerHTML = marked.parse("Erro ao conectar com a Vortex.");
-    }
-  } finally {
-    stopBtn.style.display = "none";
-  }
-}
-
-form.addEventListener("submit", e => {
-  e.preventDefault();
-
-  const message = input.value.trim();
-
-  if (!message) return;
-
-  input.value = "";
-  sendMessage(message);
-});
-
-stopBtn.onclick = () => {
-  if (controller) {
-    controller.abort();
-  }
-
-  stopBtn.style.display = "none";
-};
-
-newChat.onclick = () => {
-  currentChatId = null;
-  currentMessages = [];
-  chat.innerHTML = "";
-  showEmpty();
-  renderChats(allChats);
-};
-
-document.querySelectorAll(".suggestions button").forEach(btn => {
-  btn.onclick = () => {
-    input.value = btn.dataset.prompt;
-    input.focus();
-  };
-});
-
-openMenu.onclick = () => {
-  sidebar.classList.add("active");
-};
-
-closeMenu.onclick = () => {
-  sidebar.classList.remove("active");
-};
-
-themeBtn.onclick = () => {
-  themeModal.style.display = "flex";
-};
-
-closeTheme.onclick = () => {
-  themeModal.style.display = "none";
-};
-
-document.querySelectorAll(".theme-grid button").forEach(btn => {
-  btn.onclick = () => {
-    const theme = btn.dataset.theme;
-
-    document.body.dataset.theme = theme;
-    localStorage.setItem("vortexTheme", theme);
-
-    themeModal.style.display = "none";
-  };
-});
-
-const savedTheme = localStorage.getItem("vortexTheme");
-
-if (savedTheme) {
-  document.body.dataset.theme = savedTheme;
-}
-
-fileBtn.onclick = () => {
-  fileInput.click();
-};
-
-fileInput.onchange = async () => {
-  const file = fileInput.files[0];
-
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  filePreview.textContent = `Lendo arquivo: ${file.name}`;
-
-  try {
-    const res = await fetch(`${API}/upload`, {
-      method: "POST",
-      headers: onlyAuthHeader(),
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      filePreview.textContent = data.error;
-      return;
-    }
-
-    uploadedText = data.text || "";
-    uploadedFileName = data.filename || file.name;
-
-    filePreview.textContent = `Arquivo anexado: ${uploadedFileName}`;
   } catch {
-    filePreview.textContent = "Erro ao enviar arquivo.";
+    botContent.textContent = "Erro ao conectar com a Vortex.";
   }
-};
+}
 
-exportBtn.onclick = () => {
-  if (!currentMessages.length) {
-    alert("Nenhuma conversa para exportar.");
-    return;
-  }
+function newChat() {
+  currentChatId = null;
+  chatContainer.innerHTML = `
+    <div style="
+      text-align:center;
+      margin-top:80px;
+      color:#9ca3af;
+    ">
+      <h1 style="color:white;margin-bottom:10px;">🌀 VORTEX AI</h1>
+      <p>Comece uma nova conversa.</p>
+    </div>
+  `;
+}
 
-  const text = currentMessages
-    .map(m => `${m.role}:\n${m.content}`)
-    .join("\n\n----------------\n\n");
-
-  const blob = new Blob([text], {
-    type: "text/plain;charset=utf-8"
-  });
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "conversa-vortex.txt";
-  a.click();
-
-  URL.revokeObjectURL(url);
-};
-
-logoutBtn.onclick = () => {
+function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  location.href = "/login.html";
-};
+  window.location.href = "/login.html";
+}
 
+messageInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
+
+newChat();
 loadChats();

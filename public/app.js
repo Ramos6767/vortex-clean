@@ -1,225 +1,323 @@
-// public/app.js
-
 const API = "";
 
-const form = document.getElementById("form");
-const input = document.getElementById("input");
-const chat = document.getElementById("chat");
-const history = document.getElementById("history");
-const emptyState = document.getElementById("emptyState");
-
-const themeBtn = document.getElementById("themeBtn");
-const themeModal = document.getElementById("themeModal");
-const closeTheme = document.getElementById("closeTheme");
-
-const openMenu = document.getElementById("openMenu");
-const closeMenu = document.getElementById("closeMenu");
-const sidebar = document.getElementById("sidebar");
-
-const stopBtn = document.getElementById("stopBtn");
-
-const fileBtn = document.getElementById("fileBtn");
-const fileInput = document.getElementById("fileInput");
-const filePreview = document.getElementById("filePreview");
-
-const suggestions = document.querySelectorAll(".suggestions button");
-
-let controller = null;
-let currentChatId = null;
-let uploadedText = "";
-
+const user = JSON.parse(localStorage.getItem("user") || "{}");
 const token = localStorage.getItem("token");
 
 if (!token) {
   location.href = "/login.html";
 }
 
-async function loadChats() {
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const chat = document.getElementById("chat");
+const chatArea = document.getElementById("chatArea");
+const emptyState = document.getElementById("emptyState");
+const historyBox = document.getElementById("history");
+const searchHistory = document.getElementById("searchHistory");
 
-  const res = await fetch(`${API}/chats`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+const newChat = document.getElementById("newChat");
+const openMenu = document.getElementById("openMenu");
+const closeMenu = document.getElementById("closeMenu");
+const sidebar = document.getElementById("sidebar");
 
-  const chats = await res.json();
+const themeBtn = document.getElementById("themeBtn");
+const themeModal = document.getElementById("themeModal");
+const closeTheme = document.getElementById("closeTheme");
 
-  history.innerHTML = "";
+const exportBtn = document.getElementById("exportBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-  chats.forEach(chatItem => {
+const avatar = document.getElementById("avatar");
+const profileAvatar = document.getElementById("profileAvatar");
+const profileName = document.getElementById("profileName");
+const helloName = document.getElementById("helloName");
 
-    const div = document.createElement("div");
+const stopBtn = document.getElementById("stopBtn");
+const fileBtn = document.getElementById("fileBtn");
+const fileInput = document.getElementById("fileInput");
+const filePreview = document.getElementById("filePreview");
 
-    div.className = "chat-card";
+let currentChatId = null;
+let allChats = [];
+let currentMessages = [];
+let uploadedText = "";
+let uploadedFileName = "";
+let controller = null;
 
-    const date = new Date(chatItem.created_at);
+function getUserName() {
+  return user?.name || user?.email?.split("@")[0] || "Gabriel";
+}
 
-    div.innerHTML = `
-      <h4>${chatItem.title}</h4>
-      <span>${date.toLocaleString("pt-BR")}</span>
-    `;
+function getInitial() {
+  return getUserName().trim().slice(0, 1).toUpperCase();
+}
 
-    div.onclick = () => {
-      openChat(chatItem.id);
-    };
+function setupUser() {
+  const name = getUserName();
 
-    history.appendChild(div);
+  avatar.textContent = getInitial();
+  profileAvatar.textContent = getInitial();
+  profileName.textContent = name;
+  helloName.textContent = name.split(" ")[0];
+}
+
+setupUser();
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  };
+}
+
+function onlyAuthHeader() {
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
+
+function formatDate(dateString) {
+  const d = new Date(dateString);
+
+  return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
   });
 }
 
-function addMessage(role, text) {
+function formatHour(date = new Date()) {
+  return date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
 
+function clearEmpty() {
   emptyState.style.display = "none";
+}
 
-  const wrapper = document.createElement("div");
+function showEmpty() {
+  emptyState.style.display = "block";
+}
 
-  wrapper.className = `message ${role}`;
+function addMessage(role, text) {
+  clearEmpty();
 
-  const avatar = document.createElement("div");
+  const message = document.createElement("div");
+  message.className = `message ${role}`;
 
-  avatar.className = "msg-avatar";
-
-  avatar.innerHTML =
-    role === "assistant"
-      ? "🌀"
-      : "👤";
+  if (role === "assistant") {
+    const avatarEl = document.createElement("div");
+    avatarEl.className = "msg-avatar";
+    avatarEl.textContent = "🌀";
+    message.appendChild(avatarEl);
+  }
 
   const box = document.createElement("div");
-
   box.className = "msg-box";
 
-  const content = document.createElement("div");
+  const time = document.createElement("div");
+  time.className = "msg-time";
+  time.textContent = formatHour();
 
+  const content = document.createElement("div");
   content.className = "msg-content";
 
-  content.innerHTML = marked.parse(text);
+  if (role === "assistant") {
+    content.innerHTML = marked.parse(text || "");
+  } else {
+    content.textContent = text || "";
+  }
 
+  box.appendChild(time);
   box.appendChild(content);
 
   if (role === "assistant") {
-
     const actions = document.createElement("div");
-
     actions.className = "msg-actions";
 
-    actions.innerHTML = `
-      <button class="copy-btn">📋</button>
-      <button>👍</button>
-      <button>👎</button>
-    `;
+    const copy = document.createElement("button");
+    copy.textContent = "Copiar";
 
-    actions.querySelector(".copy-btn").onclick = () => {
-
-      navigator.clipboard.writeText(text);
-
-      actions.querySelector(".copy-btn").innerHTML = "✅";
+    copy.onclick = async () => {
+      await navigator.clipboard.writeText(text);
+      copy.textContent = "Copiado";
+      setTimeout(() => copy.textContent = "Copiar", 1200);
     };
+
+    const like = document.createElement("button");
+    like.textContent = "👍";
+
+    const dislike = document.createElement("button");
+    dislike.textContent = "👎";
+
+    actions.appendChild(copy);
+    actions.appendChild(like);
+    actions.appendChild(dislike);
 
     box.appendChild(actions);
   }
 
-  if (role === "assistant") {
+  message.appendChild(box);
+  chat.appendChild(message);
 
-    wrapper.appendChild(avatar);
-    wrapper.appendChild(box);
+  currentMessages.push({
+    role: role === "assistant" ? "Vortex" : "Você",
+    content: text
+  });
 
-  } else {
-
-    wrapper.appendChild(box);
-  }
-
-  chat.appendChild(wrapper);
-
-  chat.scrollTop = chat.scrollHeight;
+  chatArea.scrollTop = chatArea.scrollHeight;
 
   return content;
 }
 
-async function sendMessage(message) {
+async function loadChats() {
+  try {
+    const res = await fetch(`${API}/chats`, {
+      headers: onlyAuthHeader()
+    });
 
-  addMessage("user", message);
+    allChats = await res.json();
 
-  const aiContent = addMessage("assistant", "Pensando...");
+    renderChats(allChats);
+  } catch {
+    historyBox.innerHTML = "";
+  }
+}
 
-  controller = new AbortController();
+function renderChats(list) {
+  historyBox.innerHTML = "";
 
-  stopBtn.style.display = "flex";
+  list.forEach(item => {
+    const div = document.createElement("div");
+    div.className = `chat-card ${item.id === currentChatId ? "active" : ""}`;
+
+    div.innerHTML = `
+      <h4>${item.title || "Nova conversa"}</h4>
+      <span>${formatDate(item.created_at)}</span>
+    `;
+
+    div.onclick = () => {
+      openChat(item.id);
+    };
+
+    historyBox.appendChild(div);
+  });
+}
+
+searchHistory.addEventListener("input", () => {
+  const term = searchHistory.value.toLowerCase().trim();
+
+  const filtered = allChats.filter(chat =>
+    (chat.title || "").toLowerCase().includes(term)
+  );
+
+  renderChats(filtered);
+});
+
+async function openChat(id) {
+  currentChatId = id;
+  currentMessages = [];
+  chat.innerHTML = "";
+  clearEmpty();
 
   try {
+    const res = await fetch(`${API}/chats/${id}/messages`, {
+      headers: onlyAuthHeader()
+    });
 
-    const response = await fetch(`${API}/chat/stream`, {
+    const messages = await res.json();
 
+    messages.forEach(msg => {
+      addMessage(
+        msg.role === "assistant" ? "assistant" : "user",
+        msg.content
+      );
+    });
+
+    renderChats(allChats);
+  } catch {
+    addMessage("assistant", "Erro ao abrir conversa.");
+  }
+}
+
+async function sendMessage(message) {
+  addMessage("user", message);
+
+  const aiContent = addMessage("assistant", "");
+  aiContent.innerHTML = "Pensando...";
+
+  controller = new AbortController();
+  stopBtn.style.display = "block";
+
+  try {
+    const res = await fetch(`${API}/chat/stream`, {
       method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-
+      headers: authHeaders(),
       body: JSON.stringify({
         message,
         chatId: currentChatId,
         fileContext: uploadedText
+          ? `Arquivo: ${uploadedFileName}\n\n${uploadedText}`
+          : ""
       }),
-
       signal: controller.signal
     });
 
-    const reader = response.body.getReader();
+    if (!res.ok) {
+      throw new Error("Erro HTTP");
+    }
 
-    const decoder = new TextDecoder();
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
 
     let fullText = "";
-
     aiContent.innerHTML = "";
 
     while (true) {
-
       const { done, value } = await reader.read();
 
       if (done) break;
 
-      const chunk = decoder.decode(value);
+      let chunk = decoder.decode(value);
 
-      if (chunk.includes("[[CHAT_ID:")) {
+      const match = chunk.match(/\[\[CHAT_ID:(\d+)\]\]/);
 
-        const id =
-          chunk
-            .split("[[CHAT_ID:")[1]
-            .split("]]")[0];
-
-        currentChatId = id;
-
-        continue;
+      if (match) {
+        currentChatId = Number(match[1]);
+        chunk = chunk.replace(/\n?\[\[CHAT_ID:\d+\]\]/, "");
       }
 
       fullText += chunk;
 
       aiContent.innerHTML = marked.parse(fullText);
 
-      chat.scrollTop = chat.scrollHeight;
+      chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    loadChats();
+    const last = currentMessages[currentMessages.length - 1];
 
-  } catch (err) {
-
-    aiContent.innerHTML = `
-      <p style="color:#ff4d4d">
-        Erro ao conectar com a Vortex.
-      </p>
-    `;
-
-  } finally {
-
-    stopBtn.style.display = "none";
+    if (last && last.role === "Vortex") {
+      last.content = fullText;
+    }
 
     uploadedText = "";
+    uploadedFileName = "";
+    filePreview.innerHTML = "";
+
+    await loadChats();
+  } catch (err) {
+    if (err.name === "AbortError") {
+      aiContent.innerHTML = marked.parse("Resposta interrompida.");
+    } else {
+      aiContent.innerHTML = marked.parse("Erro ao conectar com a Vortex.");
+    }
+  } finally {
+    stopBtn.style.display = "none";
   }
 }
 
-form.addEventListener("submit", async (e) => {
-
+form.addEventListener("submit", e => {
   e.preventDefault();
 
   const message = input.value.trim();
@@ -227,12 +325,10 @@ form.addEventListener("submit", async (e) => {
   if (!message) return;
 
   input.value = "";
-
   sendMessage(message);
 });
 
 stopBtn.onclick = () => {
-
   if (controller) {
     controller.abort();
   }
@@ -240,46 +336,28 @@ stopBtn.onclick = () => {
   stopBtn.style.display = "none";
 };
 
-async function openChat(id) {
-
-  currentChatId = id;
-
-  chat.innerHTML = "";
-
-  emptyState.style.display = "none";
-
-  const res = await fetch(`${API}/chats/${id}/messages`, {
-
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  const data = await res.json();
-
-  data.forEach(msg => {
-    addMessage(msg.role, msg.content);
-  });
-}
-
-document.getElementById("newChat").onclick = () => {
-
+newChat.onclick = () => {
   currentChatId = null;
-
+  currentMessages = [];
   chat.innerHTML = "";
-
-  emptyState.style.display = "block";
+  showEmpty();
+  renderChats(allChats);
 };
 
-suggestions.forEach(btn => {
-
+document.querySelectorAll(".suggestions button").forEach(btn => {
   btn.onclick = () => {
-
     input.value = btn.dataset.prompt;
-
     input.focus();
   };
 });
+
+openMenu.onclick = () => {
+  sidebar.classList.add("active");
+};
+
+closeMenu.onclick = () => {
+  sidebar.classList.remove("active");
+};
 
 themeBtn.onclick = () => {
   themeModal.style.display = "flex";
@@ -290,78 +368,86 @@ closeTheme.onclick = () => {
 };
 
 document.querySelectorAll(".theme-grid button").forEach(btn => {
-
   btn.onclick = () => {
+    const theme = btn.dataset.theme;
 
-    const color = btn.dataset.color;
-
-    document.body.setAttribute("data-theme", color);
-
-    localStorage.setItem("theme", color);
+    document.body.dataset.theme = theme;
+    localStorage.setItem("vortexTheme", theme);
 
     themeModal.style.display = "none";
   };
 });
 
-const savedTheme = localStorage.getItem("theme");
+const savedTheme = localStorage.getItem("vortexTheme");
 
 if (savedTheme) {
-  document.body.setAttribute("data-theme", savedTheme);
+  document.body.dataset.theme = savedTheme;
 }
-
-openMenu.onclick = () => {
-  sidebar.classList.add("active");
-};
-
-closeMenu.onclick = () => {
-  sidebar.classList.remove("active");
-};
 
 fileBtn.onclick = () => {
   fileInput.click();
 };
 
-fileInput.addEventListener("change", async () => {
-
+fileInput.onchange = async () => {
   const file = fileInput.files[0];
 
   if (!file) return;
 
   const formData = new FormData();
-
   formData.append("file", file);
 
-  filePreview.innerHTML = `
-    📎 ${file.name}
-  `;
+  filePreview.textContent = `Lendo arquivo: ${file.name}`;
 
-  const res = await fetch(`${API}/upload`, {
+  try {
+    const res = await fetch(`${API}/upload`, {
+      method: "POST",
+      headers: onlyAuthHeader(),
+      body: formData
+    });
 
-    method: "POST",
+    const data = await res.json();
 
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    if (data.error) {
+      filePreview.textContent = data.error;
+      return;
+    }
 
-    body: formData
+    uploadedText = data.text || "";
+    uploadedFileName = data.filename || file.name;
+
+    filePreview.textContent = `Arquivo anexado: ${uploadedFileName}`;
+  } catch {
+    filePreview.textContent = "Erro ao enviar arquivo.";
+  }
+};
+
+exportBtn.onclick = () => {
+  if (!currentMessages.length) {
+    alert("Nenhuma conversa para exportar.");
+    return;
+  }
+
+  const text = currentMessages
+    .map(m => `${m.role}:\n${m.content}`)
+    .join("\n\n----------------\n\n");
+
+  const blob = new Blob([text], {
+    type: "text/plain;charset=utf-8"
   });
 
-  const data = await res.json();
+  const url = URL.createObjectURL(blob);
 
-  if (data.text) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "conversa-vortex.txt";
+  a.click();
 
-    uploadedText = data.text;
+  URL.revokeObjectURL(url);
+};
 
-    filePreview.innerHTML = `
-      ✅ ${file.name} carregado
-    `;
-  }
-});
-
-document.getElementById("logoutBtn").onclick = () => {
-
+logoutBtn.onclick = () => {
   localStorage.removeItem("token");
-
+  localStorage.removeItem("user");
   location.href = "/login.html";
 };
 

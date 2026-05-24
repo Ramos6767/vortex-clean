@@ -35,7 +35,7 @@
         <strong id="profileName">Gabriel</strong>
         <small>Free</small>
       </div>
-      <button id="logoutBtn">⌄</button>
+      <button id="logoutBtn">Sair</button>
     </div>
   </aside>
 
@@ -49,22 +49,22 @@
       </div>
 
       <div class="top-actions">
-        <button id="exportBtn">⇩</button>
-        <button id="themeBtn">☼</button>
+        <button id="exportBtn" title="Exportar conversa">⇩</button>
+        <button id="themeBtn" title="Tema">☼</button>
         <button class="avatar" id="avatar">G</button>
       </div>
     </header>
 
     <section class="chat-area" id="chatArea">
-      <div class="date-pill">24 de maio de 2026</div>
+      <div class="date-pill" id="datePill">Hoje</div>
 
       <div class="empty-state" id="emptyState">
         <div class="empty-logo">🌀</div>
-        <h1>Olá, <span id="helloName">Gabriel</span>! 👋</h1>
+        <h1>Olá, <span id="helloName">Gabriel</span>!</h1>
         <p>Como posso te ajudar hoje?</p>
 
         <div class="suggestions">
-          <button data-prompt="Crie um código HTML, CSS e JavaScript moderno.">💻 Criar código</button>
+          <button data-prompt="Crie um código HTML, CSS e JavaScript moderno.">💻 Código</button>
           <button data-prompt="Explique esse assunto de forma simples.">📚 Explicar</button>
           <button data-prompt="Me dê ideias para meu projeto.">⚡ Ideias</button>
           <button data-prompt="Resuma este texto.">📝 Resumir</button>
@@ -87,6 +87,8 @@
 
       <button class="send" type="submit">➤</button>
     </form>
+
+    <p class="warning">A VORTEX pode cometer erros. Verifique informações importantes.</p>
   </main>
 
   <div class="theme-modal" id="themeModal">

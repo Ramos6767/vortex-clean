@@ -1,239 +1,280 @@
-const user = JSON.parse(localStorage.getItem("user"));
-const token = localStorage.getItem("token");
-
-if (!user || !token) {
-  window.location.href = "/login.html";
-}
+// public/app.js
 
 const form = document.getElementById("form");
 const input = document.getElementById("input");
-const chat = document.getElementById("chat");
-const chatArea = document.getElementById("chatArea");
-const emptyState = document.getElementById("emptyState");
-
+const messages = document.getElementById("messages");
 const stopBtn = document.getElementById("stopBtn");
+const chatList = document.getElementById("chatList");
+const fileInput = document.getElementById("fileInput");
+
+const API = "";
 
 let controller = null;
+let currentChatId = null;
+let uploadedText = "";
 
-/* ADD MESSAGE */
+function addMessage(role, text) {
 
-function addMessage(text, type) {
+  const div = document.createElement("div");
 
-  emptyState.style.display = "none";
-  chat.style.display = "flex";
+  div.className = `message ${role}`;
 
-  const wrap =
-    document.createElement("div");
+  const top = document.createElement("div");
+  top.className = "msg-top";
 
-  wrap.className =
-    `msg-wrap ${type}`;
+  const name = document.createElement("span");
+  name.className = "msg-name";
 
-  /* HEADER */
+  name.innerText =
+    role === "user"
+      ? "Você"
+      : "Vortex";
 
-  const header =
-    document.createElement("div");
+  top.appendChild(name);
 
-  header.className =
-    "msg-header";
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "copy-btn";
+  copyBtn.innerText = "Copiar";
 
-  header.innerHTML =
-    type === "user"
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(text);
+    copyBtn.innerText = "Copiado";
 
-    ? `
-      <span class="msg-user">
-        Você
-      </span>
-    `
+    setTimeout(() => {
+      copyBtn.innerText = "Copiar";
+    }, 1500);
+  };
 
-    : `
-      <span class="msg-bot">
-        🌀 Vortex
+  top.appendChild(copyBtn);
+
+  const content = document.createElement("div");
+  content.className = "msg-content";
+
+  content.innerHTML = marked.parse(text);
+
+  div.appendChild(top);
+  div.appendChild(content);
+
+  messages.appendChild(div);
+
+  messages.scrollTop = messages.scrollHeight;
+
+  return content;
+}
+
+async function sendMessage(message) {
+
+  addMessage("user", message);
+
+  const aiContent = addMessage("assistant", "Pensando...");
+
+  controller = new AbortController();
+
+  stopBtn.style.display = "flex";
+
+  try {
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API}/chat/stream`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+
+      body: JSON.stringify({
+        message,
+        chatId: currentChatId,
+        fileContext: uploadedText
+      }),
+
+      signal: controller.signal
+    });
+
+    const reader = response.body.getReader();
+
+    const decoder = new TextDecoder();
+
+    let fullText = "";
+
+    aiContent.innerHTML = "";
+
+    while (true) {
+
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+
+      if (chunk.includes("[[CHAT_ID:")) {
+
+        const id =
+          chunk
+            .split("[[CHAT_ID:")[1]
+            .split("]]")[0];
+
+        currentChatId = id;
+
+        continue;
+      }
+
+      fullText += chunk;
+
+      aiContent.innerHTML = marked.parse(fullText);
+
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    loadChats();
+
+  } catch (err) {
+
+    aiContent.innerHTML = `
+      <span style="color:red">
+        Erro ao conectar com a Vortex.
       </span>
     `;
 
-  /* MESSAGE */
+  } finally {
 
-  const div =
-    document.createElement("div");
+    stopBtn.style.display = "none";
 
-  div.className =
-    `msg ${type}`;
-
-  if (type === "bot") {
-
-    div.innerHTML =
-      marked.parse(text);
-
-    /* COPY */
-
-    const copyBtn =
-      document.createElement("button");
-
-    copyBtn.className =
-      "copy-btn";
-
-    copyBtn.innerHTML =
-      "📋";
-
-    copyBtn.onclick =
-      async () => {
-
-        await navigator
-          .clipboard
-          .writeText(text);
-
-        copyBtn.innerHTML =
-          "✅";
-
-        setTimeout(() => {
-
-          copyBtn.innerHTML =
-            "📋";
-
-        }, 1500);
-
-      };
-
-    wrap.appendChild(copyBtn);
-
+    uploadedText = "";
   }
-
-  else {
-
-    div.textContent = text;
-
-  }
-
-  wrap.appendChild(header);
-  wrap.appendChild(div);
-
-  chat.appendChild(wrap);
-
-  chatArea.scrollTop =
-    chatArea.scrollHeight;
-
-  return div;
-
 }
 
-/* SEND */
+form.addEventListener("submit", async (e) => {
 
-form.addEventListener(
-  "submit",
+  e.preventDefault();
 
-  async (e) => {
+  const message = input.value.trim();
 
-    e.preventDefault();
+  if (!message) return;
 
-    const message =
-      input.value.trim();
+  input.value = "";
 
-    if (!message) return;
-
-    addMessage(
-      message,
-      "user"
-    );
-
-    input.value = "";
-
-    const botDiv =
-      addMessage("", "bot");
-
-    stopBtn.style.display =
-      "flex";
-
-    controller =
-      new AbortController();
-
-    try {
-
-      const res =
-        await fetch(
-          "/chat/stream",
-          {
-
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-              "application/json",
-
-              Authorization:
-              `Bearer ${token}`
-            },
-
-            body:
-            JSON.stringify({
-              message
-            }),
-
-            signal:
-            controller.signal
-
-          }
-        );
-
-      const reader =
-        res.body.getReader();
-
-      const decoder =
-        new TextDecoder();
-
-      let fullText = "";
-
-      while (true) {
-
-        const {
-          done,
-          value
-        } = await reader.read();
-
-        if (done) break;
-
-        const chunk =
-          decoder.decode(value);
-
-        fullText += chunk;
-
-        botDiv.innerHTML =
-          marked.parse(fullText);
-
-        chatArea.scrollTop =
-          chatArea.scrollHeight;
-
-      }
-
-    }
-
-    catch(err){
-
-      if(err.name !== "AbortError"){
-
-        botDiv.innerHTML =
-          "Erro ao conectar.";
-
-      }
-
-    }
-
-    stopBtn.style.display =
-      "none";
-
-  }
-);
-
-/* STOP */
+  sendMessage(message);
+});
 
 stopBtn.onclick = () => {
 
-  if(controller){
-
+  if (controller) {
     controller.abort();
-
   }
 
-  stopBtn.style.display =
-    "none";
-
+  stopBtn.style.display = "none";
 };
+
+async function loadChats() {
+
+  const token = localStorage.getItem("token");
+
+  if (!token) return;
+
+  const res = await fetch(`${API}/chats`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  const chats = await res.json();
+
+  chatList.innerHTML = "";
+
+  chats.forEach(chat => {
+
+    const div = document.createElement("div");
+
+    div.className = "chat-item";
+
+    const date = new Date(chat.created_at);
+
+    div.innerHTML = `
+      <div class="chat-title">
+        ${chat.title}
+      </div>
+
+      <div class="chat-date">
+        ${date.toLocaleString("pt-BR")}
+      </div>
+    `;
+
+    div.onclick = () => {
+      openChat(chat.id);
+    };
+
+    chatList.appendChild(div);
+  });
+}
+
+async function openChat(id) {
+
+  currentChatId = id;
+
+  messages.innerHTML = "";
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/chats/${id}/messages`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+
+  data.forEach(msg => {
+    addMessage(msg.role, msg.content);
+  });
+}
+
+document.getElementById("newChatBtn").onclick = () => {
+
+  currentChatId = null;
+
+  messages.innerHTML = `
+    <div class="welcome">
+      <h1>Nova conversa</h1>
+    </div>
+  `;
+};
+
+fileInput.addEventListener("change", async () => {
+
+  const file = fileInput.files[0];
+
+  if (!file) return;
+
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${API}/upload`, {
+    method: "POST",
+
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if (data.text) {
+
+    uploadedText = data.text;
+
+    addMessage(
+      "assistant",
+      `Arquivo "${data.filename}" carregado com sucesso.`
+    );
+  }
+});
+
+loadChats();

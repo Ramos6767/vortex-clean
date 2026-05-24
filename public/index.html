@@ -1,492 +1,99 @@
+<!-- public/index.html -->
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vortex Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <link rel="stylesheet" href="style.css">
+  <title>Vortex AI</title>
+
+  <link rel="stylesheet" href="style.css"/>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+<body>
 
-<body data-theme="purple">
+<div class="app">
 
-  <!-- PARTICLES -->
+  <aside class="sidebar">
 
-  <div class="particles" id="particles"></div>
-
-  <!-- SIDEBAR -->
-
-  <aside class="sidebar" id="sidebar">
-
-    <div class="side-header">
-
-      <div class="logo-box">
-        🌀
-      </div>
-
-      <h1>VORTEX</h1>
-
-      <button id="closeMenu">
-        ×
-      </button>
-
+    <div class="logo">
+      VORTEX
     </div>
 
-    <!-- NEW CHAT -->
-
-    <button class="new-chat" id="newChat">
-
-      <span>✎</span>
-
-      <div>
-
-        <strong>
-          Novo chat
-        </strong>
-
-        <small>
-          Inicie uma conversa do zero
-        </small>
-
-      </div>
-
+    <button id="newChatBtn" class="new-chat">
+      + Nova conversa
     </button>
 
-    <!-- TITLE -->
-
-    <div class="recent-title">
-
-      <span>
-        Conversas recentes
-      </span>
-
-    </div>
-
-    <!-- SEARCH -->
-
-    <div class="history-search">
-
-      <input
-        id="searchHistory"
-        placeholder="Pesquisar conversas..."
-      >
-
-    </div>
-
-    <!-- HISTORY -->
-
-    <div
-      class="history"
-      id="history"
-    ></div>
-
-    <!-- FOOTER -->
-
-    <div class="bottom">
-
-      <button
-        class="profile"
-        id="logoutBtn"
-      >
-
-        👤 Sair
-
-        <span>›</span>
-
-      </button>
-
-      <button
-        class="theme"
-        id="themeBtn"
-      >
-
-        🎨 Cor da IA
-
-        <span id="themeName">
-          ROXO
-        </span>
-
-      </button>
-
-    </div>
+    <div id="chatList" class="chat-list"></div>
 
   </aside>
 
-  <!-- MAIN -->
+  <main class="main">
 
-  <main>
+    <header class="topbar">
 
-    <!-- HEADER -->
+      <div class="user-box">
+        <div class="avatar" id="avatar">
+          G
+        </div>
 
-    <header>
-
-      <button id="openMenu">
-        ☰
-      </button>
-
-      <h2>
-
-        <i></i>
-
-        VORTEX
-
-        <span>
-          chat V1
-        </span>
-
-      </h2>
-
-      <!-- ACTIONS -->
-
-      <div class="top-actions">
-
-        <button id="exportBtn">
-          ⬇
-        </button>
-
-        <button>
-          ⌕
-        </button>
-
-        <button>
-          ⚙
-        </button>
-
-        <button
-          class="avatar"
-          id="avatar"
-        >
-          V
-        </button>
-
+        <div class="user-info">
+          <h3 id="userName">Gabriel</h3>
+          <span>Online</span>
+        </div>
       </div>
 
     </header>
 
-    <!-- CHAT -->
+    <section id="messages" class="messages">
 
-    <section
-      class="chat-area"
-      id="chatArea"
-    >
+      <div class="welcome">
 
-      <!-- EMPTY -->
-
-      <div
-        class="empty-state"
-        id="emptyState"
-      >
-
-        <div class="empty-logo">
-          🌀
-        </div>
-
-        <h1>
-          VORTEXchat
-        </h1>
+        <h1>Vortex AI</h1>
 
         <p>
-          Comece uma conversa em tempo real com sua IA.
+          Sua IA futurista inteligente.
         </p>
-
-        <!-- SUGGESTIONS -->
-
-        <div class="suggestions">
-
-          <button
-            data-prompt="Crie um código HTML, CSS e JavaScript para um site moderno."
-          >
-
-            <span>💻</span>
-
-            <strong>
-              Criar código
-            </strong>
-
-            <small>
-              HTML, CSS, JS
-            </small>
-
-          </button>
-
-          <button
-            data-prompt="Explique esse assunto de forma simples e fácil de entender."
-          >
-
-            <span>📚</span>
-
-            <strong>
-              Explicar matéria
-            </strong>
-
-            <small>
-              Aprenda rápido
-            </small>
-
-          </button>
-
-          <button
-            data-prompt="Me dê ideias criativas para melhorar meu projeto de IA."
-          >
-
-            <span>⚡</span>
-
-            <strong>
-              Gerar ideia
-            </strong>
-
-            <small>
-              Projetos e apps
-            </small>
-
-          </button>
-
-          <button
-            data-prompt="Resuma este texto de forma clara e organizada."
-          >
-
-            <span>📝</span>
-
-            <strong>
-              Resumir texto
-            </strong>
-
-            <small>
-              Resumo inteligente
-            </small>
-
-          </button>
-
-        </div>
 
       </div>
 
-      <!-- CHAT -->
-
-      <section
-        class="chat"
-        id="chat"
-      ></section>
-
     </section>
 
-    <!-- FILE -->
-
-    <div
-      class="file-preview"
-      id="filePreview"
-    ></div>
-
-    <!-- FORM -->
-
-    <form id="form">
-
-      <button
-        type="button"
-        class="plus"
-        id="fileBtn"
-      >
-        +
-      </button>
+    <form id="form" class="chat-form">
 
       <input
-        type="file"
-        id="fileInput"
-        hidden
-        accept=".txt,.pdf,.docx,.js,.html,.css,.json,.md"
-      >
-
-      <input
+        type="text"
         id="input"
         placeholder="Digite sua mensagem..."
         autocomplete="off"
-      >
+      />
 
-      <button
-        type="button"
-        class="mic"
-      >
+      <label class="upload-btn">
+        📎
+        <input type="file" id="fileInput" hidden />
+      </label>
+
+      <button type="button" class="mic">
         🎙
       </button>
 
-      <button
-        class="send"
-        type="submit"
-      >
+      <button type="button" class="stop-btn" id="stopBtn">
+        ■
+      </button>
+
+      <button class="send" type="submit">
         ➤
       </button>
 
     </form>
 
-    <p class="warning">
-      A VORTEX pode cometer erros.
-      Verifique informações importantes.
-    </p>
-
   </main>
 
-  <!-- THEME MODAL -->
+</div>
 
-  <div
-    class="theme-modal"
-    id="themeModal"
-  >
-
-    <div class="theme-box">
-
-      <div class="theme-head">
-
-        <h3>
-          Escolha a cor da IA
-        </h3>
-
-        <button id="closeTheme">
-          ×
-        </button>
-
-      </div>
-
-      <div class="theme-grid">
-
-        <button
-          data-color="purple"
-          data-name="ROXO"
-        >
-
-          <span class="dot purple"></span>
-
-          <div>
-
-            <strong>
-              Roxo
-            </strong>
-
-            <small>
-              Vortex clássico
-            </small>
-
-          </div>
-
-        </button>
-
-        <button
-          data-color="blue"
-          data-name="AZUL"
-        >
-
-          <span class="dot blue"></span>
-
-          <div>
-
-            <strong>
-              Azul
-            </strong>
-
-            <small>
-              Cyber azul
-            </small>
-
-          </div>
-
-        </button>
-
-        <button
-          data-color="green"
-          data-name="VERDE"
-        >
-
-          <span class="dot green"></span>
-
-          <div>
-
-            <strong>
-              Verde
-            </strong>
-
-            <small>
-              Matrix neon
-            </small>
-
-          </div>
-
-        </button>
-
-        <button
-          data-color="red"
-          data-name="VERMELHO"
-        >
-
-          <span class="dot red"></span>
-
-          <div>
-
-            <strong>
-              Vermelho
-            </strong>
-
-            <small>
-              Dark power
-            </small>
-
-          </div>
-
-        </button>
-
-        <button
-          data-color="pink"
-          data-name="ROSA"
-        >
-
-          <span class="dot pink"></span>
-
-          <div>
-
-            <strong>
-              Rosa
-            </strong>
-
-            <small>
-              Neon pink
-            </small>
-
-          </div>
-
-        </button>
-
-        <button
-          data-color="orange"
-          data-name="LARANJA"
-        >
-
-          <span class="dot orange"></span>
-
-          <div>
-
-            <strong>
-              Laranja
-            </strong>
-
-            <small>
-              Solar fire
-            </small>
-
-          </div>
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- MARKDOWN -->
-
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <!-- APP -->
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>

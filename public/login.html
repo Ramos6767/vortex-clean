@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login Vortex</title>
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="login.css" />
 </head>
 <body>
 
-  <div class="login-container">
-    <div class="vortex-logo">🌀</div>
+  <div class="login-card">
+    <div class="logo">🌀</div>
 
     <h1>VORTEX</h1>
     <p>Sua IA futurista avançada</p>
 
-    <input id="name" type="text" placeholder="Nome">
-    <input id="email" type="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Senha">
+    <div id="registerFields" class="hidden">
+      <input id="name" type="text" placeholder="Seu nome" />
+    </div>
 
-    <button id="authBtn">Entrar</button>
+    <input id="email" type="email" placeholder="Seu Gmail" />
+    <input id="password" type="password" placeholder="Sua senha" />
 
-    <p class="toggle" id="toggleAuth">
-      Não tem conta? <span>Cadastrar</span>
+    <button id="submitBtn">Entrar</button>
+
+    <p class="switch">
+      <span id="switchText">Não tem conta?</span>
+      <button id="switchBtn">Cadastrar</button>
     </p>
   </div>
 

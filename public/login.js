@@ -1,130 +1,86 @@
-const nameInput =
-document.getElementById("name");
+let isRegister = false;
 
-const emailInput =
-document.getElementById("email");
+const nameBox = document.getElementById("registerFields");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 
-const passwordInput =
-document.getElementById("password");
+const submitBtn = document.getElementById("submitBtn");
+const switchBtn = document.getElementById("switchBtn");
+const switchText = document.getElementById("switchText");
 
-const authBtn =
-document.getElementById("authBtn");
+function isValidGmail(email) {
+  return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+}
 
-const toggleAuth =
-document.getElementById("toggleAuth");
+switchBtn.onclick = () => {
+  isRegister = !isRegister;
 
-let isLogin = true;
-
-/* ESCONDE NOME */
-
-nameInput.style.display = "none";
-
-/* TROCAR LOGIN/CADASTRO */
-
-toggleAuth.onclick = ()=>{
-
-  isLogin = !isLogin;
-
-  if(isLogin){
-
-    nameInput.style.display =
-    "none";
-
-    authBtn.textContent =
-    "Entrar";
-
-    toggleAuth.innerHTML =
-    'Não tem conta? <span>Cadastrar</span>';
-
-  }else{
-
-    nameInput.style.display =
-    "block";
-
-    authBtn.textContent =
-    "Cadastrar";
-
-    toggleAuth.innerHTML =
-    'Já tem conta? <span>Entrar</span>';
-
+  if (isRegister) {
+    nameBox.classList.remove("hidden");
+    submitBtn.textContent = "Cadastrar";
+    switchText.textContent = "Já tem conta?";
+    switchBtn.textContent = "Entrar";
+  } else {
+    nameBox.classList.add("hidden");
+    submitBtn.textContent = "Entrar";
+    switchText.textContent = "Não tem conta?";
+    switchBtn.textContent = "Cadastrar";
   }
-
 };
 
-/* LOGIN/CADASTRO */
+submitBtn.onclick = async () => {
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value.trim();
 
-authBtn.onclick = async ()=>{
-
-  const endpoint =
-  isLogin
-  ? "/auth/login"
-  : "/auth/register";
-
-  const body = {
-
-    email:
-    emailInput.value,
-
-    password:
-    passwordInput.value
-  };
-
-  if(!isLogin){
-
-    body.name =
-    nameInput.value;
-
+  if (!email || !password) {
+    alert("Preencha email e senha.");
+    return;
   }
 
-  try{
+  if (!isValidGmail(email)) {
+    alert("Use um Gmail válido. Exemplo: seunome@gmail.com");
+    return;
+  }
 
-    const res =
-    await fetch(endpoint,{
+  if (password.length < 6) {
+    alert("A senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
 
-      method:"POST",
+  if (isRegister && !name) {
+    alert("Digite seu nome.");
+    return;
+  }
 
-      headers:{
-        "Content-Type":
-        "application/json"
+  const url = isRegister ? "/auth/register" : "/auth/login";
+
+  const body = isRegister
+    ? { name, email, password }
+    : { email, password };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-
-      body:JSON.stringify(body)
-
+      body: JSON.stringify(body)
     });
 
-    const data =
-    await res.json();
+    const data = await res.json();
 
-    console.log(data);
-
-    if(data.error){
-
+    if (data.error) {
       alert(data.error);
       return;
-
     }
 
-    localStorage.setItem(
-      "token",
-      data.token
-    );
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(data.user)
-    );
-
-    window.location.href =
-    "/index.html";
-
-  }catch(err){
-
-    console.log(err);
-
-    alert(
-      "Erro ao conectar."
-    );
-
+    window.location.href = "/index.html";
+  } catch {
+    alert("Erro ao conectar.");
   }
-
 };

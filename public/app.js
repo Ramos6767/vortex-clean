@@ -20,13 +20,10 @@ let allChats = [];
 let uploadedText = "";
 let uploadedFileName = "";
 
-document.getElementById("userName").textContent =
-  user.name || "Gabriel";
+document.getElementById("userName").textContent = user.name || "Gabriel";
 
 document.getElementById("userAvatar").textContent =
-  (user.name || "G")
-    .slice(0, 1)
-    .toUpperCase();
+  (user.name || "G").slice(0, 1).toUpperCase();
 
 function authHeaders() {
   return {
@@ -42,216 +39,124 @@ function onlyAuthHeader() {
 }
 
 function scrollBottom() {
-  chatContainer.scrollTop =
-    chatContainer.scrollHeight;
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function addMessage(role, text) {
-
   const div = document.createElement("div");
-
-  div.className =
-    `message ${role === "assistant"
-      ? "bot"
-      : "user"
-    }`;
+  div.className = `message ${role === "assistant" ? "bot" : "user"}`;
 
   if (role === "assistant") {
-
-    const avatar =
-      document.createElement("div");
-
+    const avatar = document.createElement("div");
     avatar.className = "bot-avatar";
     avatar.textContent = "🌀";
-
     div.appendChild(avatar);
-
   }
 
-  const content =
-    document.createElement("div");
-
+  const content = document.createElement("div");
   content.className = "message-content";
 
-  if (
-    role === "assistant" &&
-    window.marked
-  ) {
-
-    content.innerHTML =
-      marked.parse(text || "");
-
+  if (role === "assistant" && window.marked) {
+    content.innerHTML = marked.parse(text || "");
   } else {
-
     content.textContent = text || "";
-
   }
 
   div.appendChild(content);
-
   chatContainer.appendChild(div);
-
   scrollBottom();
 
   return content;
 }
 
 async function loadChats() {
-
   try {
-
-    const res = await fetch(
-      `${API}/chats`,
-      {
-        headers: onlyAuthHeader()
-      }
-    );
+    const res = await fetch(`${API}/chats`, {
+      headers: onlyAuthHeader()
+    });
 
     allChats = await res.json();
-
     renderChats(allChats);
-
   } catch {
-
     chatList.innerHTML = "";
-
   }
-
 }
 
 function renderChats(chats) {
-
   chatList.innerHTML = "";
 
   chats.forEach(chat => {
-
-    const item =
-      document.createElement("div");
-
+    const item = document.createElement("div");
     item.className = "chat-item";
 
-    const date =
-      new Date(chat.created_at);
+    const date = new Date(chat.created_at);
 
     item.innerHTML = `
       <div class="chat-info">
-        <h3>
-          ${chat.title || "Nova conversa"}
-        </h3>
-
+        <h3>${chat.title || "Nova conversa"}</h3>
         <p>
           ${date.toLocaleDateString("pt-BR")}
-          ${date.toLocaleTimeString(
-            "pt-BR",
-            {
-              hour: "2-digit",
-              minute: "2-digit"
-            }
-          )}
+          ${date.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit"
+          })}
         </p>
       </div>
 
-      <button class="delete-chat">
-        🗑
-      </button>
+      <button class="delete-chat">🗑</button>
     `;
 
-    item.querySelector(
-      ".chat-info"
-    ).onclick = () => {
-
+    item.querySelector(".chat-info").onclick = () => {
       openChat(chat.id);
-
     };
 
-    /* DELETE SEM CONFIRM */
-
-    item.querySelector(
-      ".delete-chat"
-    ).onclick = async (e) => {
-
+    item.querySelector(".delete-chat").onclick = async (e) => {
       e.stopPropagation();
-
       await deleteChat(chat.id);
-
     };
 
     chatList.appendChild(item);
-
   });
-
 }
 
 async function deleteChat(id) {
-
   try {
-
-    await fetch(
-      `${API}/chats/${id}`,
-      {
-        method: "DELETE",
-        headers: onlyAuthHeader()
-      }
-    );
+    await fetch(`${API}/chats/${id}`, {
+      method: "DELETE",
+      headers: onlyAuthHeader()
+    });
 
     if (currentChatId === id) {
-
       newChat();
-
     }
 
     await loadChats();
-
   } catch {
-
     alert("Erro ao apagar.");
-
   }
-
 }
 
 async function openChat(id) {
-
   currentChatId = id;
-
   chatContainer.innerHTML = "";
 
   try {
-
-    const res = await fetch(
-      `${API}/chats/${id}/messages`,
-      {
-        headers: onlyAuthHeader()
-      }
-    );
-
-    const messages =
-      await res.json();
-
-    messages.forEach(msg => {
-
-      addMessage(
-        msg.role,
-        msg.content
-      );
-
+    const res = await fetch(`${API}/chats/${id}/messages`, {
+      headers: onlyAuthHeader()
     });
 
+    const messages = await res.json();
+
+    messages.forEach(msg => {
+      addMessage(msg.role, msg.content);
+    });
   } catch {
-
-    addMessage(
-      "assistant",
-      "Erro ao abrir conversa."
-    );
-
+    addMessage("assistant", "Erro ao abrir conversa.");
   }
-
 }
 
 async function sendMessage() {
-
-  const message =
-    messageInput.value.trim();
+  const message = messageInput.value.trim();
 
   if (!message) return;
 
@@ -259,269 +164,171 @@ async function sendMessage() {
 
   addMessage("user", message);
 
-  const botContent =
-    addMessage(
-      "assistant",
-      "Pensando..."
-    );
+  const typing = document.createElement("div");
+  typing.className = "typing";
+
+  typing.innerHTML = `
+    <span></span>
+    <span></span>
+    <span></span>
+  `;
+
+  chatContainer.appendChild(typing);
+  scrollBottom();
+
+  let botContent = null;
 
   try {
-
-    const res = await fetch(
-      `${API}/chat/stream`,
-      {
-        method: "POST",
-
-        headers: authHeaders(),
-
-        body: JSON.stringify({
-
-          message,
-
-          chatId: currentChatId,
-
-          fileContext: uploadedText
-            ? `
+    const res = await fetch(`${API}/chat/stream`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        message,
+        chatId: currentChatId,
+        fileContext: uploadedText
+          ? `
 Arquivo:
 ${uploadedFileName}
 
 ${uploadedText}
 `
-            : ""
-
-        })
-      }
-    );
+          : ""
+      })
+    });
 
     if (!res.ok) {
-
-      botContent.textContent =
-        "Erro ao conectar com a Vortex.";
-
+      typing.remove();
+      botContent = addMessage("assistant", "Erro ao conectar com a Vortex.");
       return;
-
     }
 
-    const reader =
-      res.body.getReader();
-
-    const decoder =
-      new TextDecoder("utf-8");
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
 
     let fullText = "";
 
-    botContent.textContent = "";
+    typing.remove();
+
+    botContent = addMessage("assistant", "");
 
     while (true) {
-
-      const {
-        done,
-        value
-      } = await reader.read();
+      const { done, value } = await reader.read();
 
       if (done) break;
 
-      let chunk =
-        decoder.decode(value);
+      let chunk = decoder.decode(value);
 
-      const match =
-        chunk.match(
-          /\[\[CHAT_ID:(\d+)\]\]/
-        );
+      const match = chunk.match(/\[\[CHAT_ID:(\d+)\]\]/);
 
       if (match) {
-
-        currentChatId =
-          Number(match[1]);
+        currentChatId = Number(match[1]);
 
         chunk = chunk.replace(
           /\n?\[\[CHAT_ID:\d+\]\]/,
           ""
         );
-
       }
 
       fullText += chunk;
 
       if (window.marked) {
-
-        botContent.innerHTML =
-          marked.parse(fullText);
-
+        botContent.innerHTML = marked.parse(fullText);
       } else {
-
-        botContent.textContent =
-          fullText;
-
+        botContent.textContent = fullText;
       }
 
       scrollBottom();
-
     }
 
     uploadedText = "";
     uploadedFileName = "";
-
     filePreview.textContent = "";
 
     await loadChats();
-
   } catch {
+    typing.remove();
 
-    botContent.textContent =
-      "Erro ao conectar com a Vortex.";
-
+    addMessage(
+      "assistant",
+      "Erro ao conectar com a Vortex."
+    );
   }
-
 }
 
 function newChat() {
-
   currentChatId = null;
-
   uploadedText = "";
-
   uploadedFileName = "";
-
   filePreview.textContent = "";
 
   chatContainer.innerHTML = `
     <div class="welcome">
-
-      <h1>
-        🌀 VORTEX AI
-      </h1>
-
-      <p>
-        Comece uma nova conversa.
-      </p>
-
+      <h1>🌀 VORTEX AI</h1>
+      <p>Comece uma nova conversa.</p>
     </div>
   `;
-
 }
 
 function logout() {
-
   localStorage.removeItem("token");
-
   localStorage.removeItem("user");
 
-  window.location.href =
-    "/login.html";
-
+  window.location.href = "/login.html";
 }
 
 function toggleSidebar() {
-
-  sidebar.classList.toggle(
-    "active"
-  );
-
+  sidebar.classList.toggle("active");
 }
 
-messageInput.addEventListener(
-  "keydown",
-  (e) => {
+messageInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
 
-    if (e.key === "Enter") {
+searchInput.addEventListener("input", () => {
+  const term = searchInput.value.toLowerCase().trim();
 
-      sendMessage();
+  const filtered = allChats.filter(chat =>
+    (chat.title || "").toLowerCase().includes(term)
+  );
 
+  renderChats(filtered);
+});
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+
+  if (!file) return;
+
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  filePreview.textContent = `Enviando: ${file.name}`;
+
+  try {
+    const res = await fetch(`${API}/upload`, {
+      method: "POST",
+      headers: onlyAuthHeader(),
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      filePreview.textContent = data.error;
+      return;
     }
 
+    uploadedText = data.text || "";
+    uploadedFileName = data.filename || file.name;
+
+    filePreview.textContent = `Arquivo anexado: ${uploadedFileName}`;
+  } catch {
+    filePreview.textContent = "Erro upload.";
   }
-);
-
-searchInput.addEventListener(
-  "input",
-  () => {
-
-    const term =
-      searchInput.value
-        .toLowerCase()
-        .trim();
-
-    const filtered =
-      allChats.filter(chat =>
-
-        (chat.title || "")
-          .toLowerCase()
-          .includes(term)
-
-      );
-
-    renderChats(filtered);
-
-  }
-);
-
-fileInput.addEventListener(
-  "change",
-  async () => {
-
-    const file =
-      fileInput.files[0];
-
-    if (!file) return;
-
-    const formData =
-      new FormData();
-
-    formData.append(
-      "file",
-      file
-    );
-
-    filePreview.textContent =
-      `Enviando:
-      ${file.name}`;
-
-    try {
-
-      const res = await fetch(
-        `${API}/upload`,
-        {
-          method: "POST",
-
-          headers: onlyAuthHeader(),
-
-          body: formData
-        }
-      );
-
-      const data =
-        await res.json();
-
-      if (data.error) {
-
-        filePreview.textContent =
-          data.error;
-
-        return;
-
-      }
-
-      uploadedText =
-        data.text || "";
-
-      uploadedFileName =
-        data.filename || file.name;
-
-      filePreview.textContent =
-        `Arquivo anexado:
-        ${uploadedFileName}`;
-
-    } catch {
-
-      filePreview.textContent =
-        "Erro upload.";
-
-    }
-
-  }
-);
+});
 
 newChat();
-
 loadChats();

@@ -3,121 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vortex Chat</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <title>VORTEX AI</title>
+
+  <link rel="stylesheet" href="/style.css" />
 </head>
-<body data-theme="purple">
 
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="logo">🌀</div>
-      <h1>VORTEX AI</h1>
-      <button id="closeMenu">‹</button>
-    </div>
+<body>
+  <div class="app">
 
-    <button class="new-chat" id="newChat">
-      <span>＋</span>
-      Nova conversa
-    </button>
-
-    <div class="search-box">
-      <span>⌕</span>
-      <input id="searchHistory" placeholder="Pesquisar conversas..." />
-    </div>
-
-    <p class="section-title">Conversas recentes</p>
-
-    <div class="history" id="history"></div>
-
-    <div class="premium">
-      <strong>👑 Vortex Premium</strong>
-      <p>Mais velocidade, memória e recursos exclusivos.</p>
-      <button>Upgrade</button>
-    </div>
-
-    <div class="profile-box">
-      <div class="profile-avatar" id="profileAvatar">G</div>
-      <div>
-        <strong id="profileName">Gabriel</strong>
-        <small>Plano Free</small>
-      </div>
-      <button id="logoutBtn">⌄</button>
-    </div>
-  </aside>
-
-  <main>
-    <header>
-      <button id="openMenu">☰</button>
-
-      <div class="title">
-        <h2>VORTEX Chat V1</h2>
-        <span>● Online</span>
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🌀</div>
+        <h1>VORTEX</h1>
       </div>
 
-      <div class="top-actions">
-        <button id="exportBtn">⇩</button>
-        <button id="themeBtn">⚙</button>
-        <button class="avatar" id="avatar">V</button>
-      </div>
-    </header>
+      <button class="new-chat" onclick="newChat()">
+        + Nova conversa
+      </button>
 
-    <section class="chat-area" id="chatArea">
-      <div class="date-pill">Hoje, 24 de maio</div>
+      <input
+        type="text"
+        class="search"
+        id="searchInput"
+        placeholder="Buscar conversa..."
+      />
 
-      <div class="empty-state" id="emptyState">
-        <div class="empty-logo">🌀</div>
-        <h1>VORTEXchat</h1>
-        <p>Comece uma conversa em tempo real com sua IA.</p>
+      <div class="section-title">Conversas</div>
 
-        <div class="suggestions">
-          <button data-prompt="Crie um código HTML, CSS e JavaScript para um site moderno.">💻 Criar código</button>
-          <button data-prompt="Explique esse assunto de forma simples.">📚 Explicar matéria</button>
-          <button data-prompt="Me dê ideias criativas para meu projeto.">⚡ Gerar ideia</button>
-          <button data-prompt="Resuma este texto de forma clara.">📝 Resumir texto</button>
+      <div class="chat-list" id="chatList"></div>
+
+      <div class="user-box">
+        <div class="user-left">
+          <div class="avatar" id="userAvatar">G</div>
+
+          <div>
+            <strong id="userName">Gabriel</strong>
+            <p>Plano Free</p>
+          </div>
         </div>
+
+        <button class="logout-btn" onclick="logout()">Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+          <div class="chat-title">
+            <h2>VORTEX Chat</h2>
+            <div class="online">● Online</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="chat-container" id="chatContainer"></div>
+
+      <div class="file-preview" id="filePreview"></div>
+
+      <div class="chat-input">
+        <button
+          class="attach-btn"
+          onclick="document.getElementById('fileInput').click()"
+        >
+          📎
+        </button>
+
+        <input
+          type="file"
+          id="fileInput"
+          hidden
+          accept=".txt,.pdf,.docx,.js,.html,.css,.json,.md"
+        />
+
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Digite sua mensagem..."
+        />
+
+        <button class="send-btn" onclick="sendMessage()">
+          ➤
+        </button>
       </div>
 
-      <section class="chat" id="chat"></section>
-    </section>
+    </main>
 
-    <div class="file-preview" id="filePreview"></div>
-
-    <form id="form">
-      <button type="button" class="plus" id="fileBtn">＋</button>
-
-      <input type="file" id="fileInput" hidden accept=".txt,.pdf,.docx,.js,.html,.css,.json,.md" />
-
-      <input id="input" placeholder="Digite sua mensagem..." autocomplete="off" />
-
-      <button type="button" class="mic">🎙</button>
-
-      <button type="button" class="stop-btn" id="stopBtn">■</button>
-
-      <button class="send" type="submit">➤</button>
-    </form>
-
-    <p class="warning">A VORTEX pode cometer erros. Verifique informações importantes.</p>
-  </main>
-
-  <div class="theme-modal" id="themeModal">
-    <div class="theme-box">
-      <div class="theme-head">
-        <h3>Escolha a cor da IA</h3>
-        <button id="closeTheme">×</button>
-      </div>
-
-      <div class="theme-grid">
-        <button data-color="purple" data-name="ROXO"><span class="dot purple"></span>Roxo</button>
-        <button data-color="blue" data-name="AZUL"><span class="dot blue"></span>Azul</button>
-        <button data-color="green" data-name="VERDE"><span class="dot green"></span>Verde</button>
-        <button data-color="red" data-name="VERMELHO"><span class="dot red"></span>Vermelho</button>
-        <button data-color="pink" data-name="ROSA"><span class="dot pink"></span>Rosa</button>
-        <button data-color="orange" data-name="LARANJA"><span class="dot orange"></span>Laranja</button>
-      </div>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

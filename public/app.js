@@ -46,55 +46,46 @@ function scrollBottom() {
     chatContainer.scrollHeight;
 }
 
-function addMessage(role, text) {
+div.appendChild(content);
 
-  const div = document.createElement("div");
+if (role === "assistant") {
 
-  div.className =
-    `message ${role === "assistant"
-      ? "bot"
-      : "user"
-    }`;
+  const copyBtn =
+    document.createElement("button");
 
-  if (role === "assistant") {
+  copyBtn.className =
+    "copy-response";
 
-    const avatar =
-      document.createElement("div");
+  copyBtn.textContent =
+    "Copiar";
 
-    avatar.className = "bot-avatar";
-    avatar.textContent = "🌀";
+  copyBtn.onclick = async () => {
 
-    div.appendChild(avatar);
+    await navigator.clipboard.writeText(
+      content.innerText
+    );
 
-  }
+    copyBtn.textContent =
+      "Copiado";
 
-  const content =
-    document.createElement("div");
+    setTimeout(() => {
 
-  content.className = "message-content";
+      copyBtn.textContent =
+        "Copiar";
 
-  if (
-    role === "assistant" &&
-    window.marked
-  ) {
+    }, 1200);
 
-    content.innerHTML =
-      marked.parse(text || "");
+  };
 
-  } else {
+  div.appendChild(copyBtn);
 
-    content.textContent = text || "";
-
-  }
-
-  div.appendChild(content);
-
-  chatContainer.appendChild(div);
-
-  scrollBottom();
-
-  return content;
 }
+
+chatContainer.appendChild(div);
+
+scrollBottom();
+
+return content;
 
 async function loadChats() {
 

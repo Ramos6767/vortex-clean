@@ -407,30 +407,23 @@ function closeSettings() {
   document.getElementById("settingsModal").style.display = "none";
 }
 
-function editProfile() {
-  const user = JSON.parse(
-    localStorage.getItem("user") || "{}"
-  );
+function setTheme(mode){
 
-  alert(
-    `👤 Perfil\n\nNome: ${user.name || "Gabriel"}\nEmail: ${user.email || "Não informado"}`
-  );
+  if(mode === "light"){
+    document.body.classList.add("light-mode");
+  }else{
+    document.body.classList.remove("light-mode");
+  }
+
+  localStorage.setItem("theme", mode);
 }
 
-async function clearAllChats() {
+const savedTheme = localStorage.getItem("theme");
 
-  const ok = confirm(
-    "Deseja apagar todas as conversas?"
-  );
-
-  if (!ok) return;
-
-  alert(
-    "Por enquanto use a lixeira individual. A limpeza total será adicionada depois."
-  );
+if(savedTheme === "light"){
+  document.body.classList.add("light-mode");
 }
 
 window.openSettings = openSettings;
 window.closeSettings = closeSettings;
-window.editProfile = editProfile;
-window.clearAllChats = clearAllChats;
+window.setTheme = setTheme;

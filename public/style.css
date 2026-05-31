@@ -524,3 +524,82 @@ body{
   border-color:#8b5cf6;
   box-shadow:0 0 20px rgba(139,92,246,.25);
 }
+.message{
+  max-width: 900px;
+}
+
+.message-content{
+  max-width: 900px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.message.bot{
+  max-width: 900px;
+}
+
+.message.user{
+  max-width: 700px;
+  margin-left: auto;
+}
+.mic-btn{
+  width:48px;
+  height:48px;
+  border:none;
+  border-radius:14px;
+  background:#15152b;
+  color:white;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.mic-btn:hover{
+  background:#8b5cf6;
+}
+.welcome{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100%;
+}
+
+.welcome-center{
+  text-align:center;
+}
+
+.welcome-center h1{
+  font-size:48px;
+  margin-bottom:10px;
+}
+
+.welcome-center h3{
+  color:#a1a1aa;
+  margin-bottom:30px;
+}
+
+.mic-btn{
+  width:44px;
+  height:44px;
+  border:none;
+  border-radius:14px;
+  background:#18182b;
+  color:white;
+  cursor:pointer;
+}
+
+.quick-actions{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.quick-actions button{
+  background:#121225;
+  border:1px solid rgba(255,255,255,.08);
+  color:white;
+  padding:14px 18px;
+  border-radius:16px;
+  cursor:pointer;
+  min-width:180px;
+}

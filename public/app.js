@@ -221,11 +221,7 @@ async function sendMessage() {
 
       if (match) {
         currentChatId = Number(match[1]);
-
-        chunk = chunk.replace(
-          /\n?\[\[CHAT_ID:\d+\]\]/,
-          ""
-        );
+        chunk = chunk.replace(/\n?\[\[CHAT_ID:\d+\]\]/, "");
       }
 
       fullText += chunk;
@@ -258,25 +254,27 @@ function newChat() {
 
   chatContainer.innerHTML = `
     <div class="welcome">
-      <h1>🌀 VORTEX AI</h1>
-      <p>Comece uma nova conversa.</p>
+      <div class="welcome-center">
+        <h1>🌀 VORTEX AI</h1>
+        <h3>Como posso ajudar hoje?</h3>
 
-      <div class="quick-actions">
-        <button onclick="quickPrompt('Crie um código HTML CSS e JavaScript moderno')">
-          💻 Criar código
-        </button>
+        <div class="quick-actions">
+          <button onclick="quickPrompt('Crie um código HTML CSS e JavaScript moderno')">
+            💻 Criar código
+          </button>
 
-        <button onclick="quickPrompt('Explique este assunto de forma simples')">
-          📚 Explicar matéria
-        </button>
+          <button onclick="quickPrompt('Explique este assunto de forma simples')">
+            📚 Explicar matéria
+          </button>
 
-        <button onclick="quickPrompt('Escreva um texto profissional sobre')">
-          ✍️ Escrever texto
-        </button>
+          <button onclick="quickPrompt('Escreva um texto profissional sobre')">
+            ✍️ Escrever texto
+          </button>
 
-        <button onclick="quickPrompt('Me dê ideias criativas para')">
-          🚀 Gerar ideias
-        </button>
+          <button onclick="quickPrompt('Me dê ideias criativas para')">
+            🚀 Gerar ideias
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -285,6 +283,26 @@ function newChat() {
 function quickPrompt(text) {
   messageInput.value = text;
   messageInput.focus();
+}
+
+function startVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Seu navegador não suporta voz.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "pt-BR";
+  recognition.start();
+
+  recognition.onresult = (event) => {
+    const text = event.results[0][0].transcript;
+    messageInput.value = text;
+    messageInput.focus();
+  };
 }
 
 function logout() {
@@ -351,6 +369,7 @@ window.newChat = newChat;
 window.logout = logout;
 window.toggleSidebar = toggleSidebar;
 window.quickPrompt = quickPrompt;
+window.startVoice = startVoice;
 
 newChat();
 loadChats();

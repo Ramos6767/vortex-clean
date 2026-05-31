@@ -407,11 +407,10 @@ function closeSettings() {
   document.getElementById("settingsModal").style.display = "none";
 }
 
-function setTheme(mode){
-
-  if(mode === "light"){
+function setTheme(mode) {
+  if (mode === "light") {
     document.body.classList.add("light-mode");
-  }else{
+  } else {
     document.body.classList.remove("light-mode");
   }
 
@@ -420,7 +419,7 @@ function setTheme(mode){
 
 const savedTheme = localStorage.getItem("theme");
 
-if(savedTheme === "light"){
+if (savedTheme === "light") {
   document.body.classList.add("light-mode");
 }
 

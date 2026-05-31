@@ -744,3 +744,61 @@ body{
   }
 
 }
+.settings-btn{
+  background:#15152b;
+  border:none;
+  color:white;
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:20px;
+}
+
+.settings-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+
+.settings-box{
+  width:300px;
+  background:#121225;
+  padding:24px;
+  border-radius:20px;
+}
+
+.settings-box button{
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#1b1b31;
+  color:white;
+  cursor:pointer;
+}
+
+.light-mode{
+  background:#f3f4f6;
+  color:#111;
+}
+
+.light-mode .main,
+.light-mode .topbar{
+  background:#f3f4f6;
+  color:#111;
+}
+
+.light-mode .sidebar,
+.light-mode .message-content,
+.light-mode .chat-input,
+.light-mode .user-box,
+.light-mode .chat-item{
+  background:white;
+  color:#111;
+}

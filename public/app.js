@@ -39,6 +39,30 @@ function scrollBottom() {
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
+function addCopyButtonsToCode(content) {
+  content.querySelectorAll("pre").forEach((pre) => {
+    if (pre.querySelector(".copy-code")) return;
+
+    const btn = document.createElement("button");
+    btn.className = "copy-code";
+    btn.textContent = "Copiar código";
+
+    btn.onclick = async () => {
+      const code = pre.querySelector("code")?.innerText || pre.innerText;
+      await navigator.clipboard.writeText(code);
+
+      btn.textContent = "Copiado";
+
+      setTimeout(() => {
+        btn.textContent = "Copiar código";
+      }, 1200);
+    };
+
+    pre.style.position = "relative";
+    pre.prepend(btn);
+  });
+}
+
 function addMessage(role, text) {
   const div = document.createElement("div");
   div.className = `message ${role === "assistant" ? "bot" : "user"}`;
@@ -55,6 +79,7 @@ function addMessage(role, text) {
 
   if (role === "assistant" && window.marked) {
     content.innerHTML = marked.parse(text || "");
+    addCopyButtonsToCode(content);
   } else {
     content.textContent = text || "";
   }
@@ -228,6 +253,7 @@ async function sendMessage() {
 
       if (window.marked) {
         botContent.innerHTML = marked.parse(fullText);
+        addCopyButtonsToCode(botContent);
       } else {
         botContent.textContent = fullText;
       }

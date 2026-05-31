@@ -603,3 +603,48 @@ body{
   cursor:pointer;
   min-width:180px;
 }
+.message-content pre{
+  background:#090914;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:16px;
+  overflow:auto;
+  margin:14px 0;
+}
+
+.message-content code{
+  font-family:Consolas, Monaco, monospace;
+  font-size:14px;
+}
+
+.message-content pre code{
+  color:#e5e7eb;
+  display:block;
+  white-space:pre;
+}
+
+.message-content p{
+  margin-bottom:10px;
+}
+.copy-code{
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:none;
+  background:#7c3aed;
+  color:white;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+  z-index:2;
+}
+
+.message-content pre{
+  background:#090914;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:42px 16px 16px;
+  overflow:auto;
+  margin:14px 0;
+}

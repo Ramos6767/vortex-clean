@@ -499,3 +499,28 @@ body{
   cursor:pointer;
   font-size:12px;
 }
+.quick-actions{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:25px;
+}
+
+.quick-actions button{
+  background:#121225;
+  border:1px solid rgba(255,255,255,.08);
+  color:white;
+  padding:14px 18px;
+  border-radius:16px;
+  cursor:pointer;
+  transition:.2s;
+  min-width:180px;
+  font-size:14px;
+}
+
+.quick-actions button:hover{
+  transform:translateY(-3px);
+  border-color:#8b5cf6;
+  box-shadow:0 0 20px rgba(139,92,246,.25);
+}

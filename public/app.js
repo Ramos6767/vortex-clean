@@ -30,7 +30,9 @@ function authHeaders() {
 }
 
 function onlyAuthHeader() {
-  return { Authorization: `Bearer ${token}` };
+  return {
+    Authorization: `Bearer ${token}`
+  };
 }
 
 function scrollBottom() {
@@ -67,7 +69,9 @@ function addMessage(role, text) {
     copyBtn.onclick = async () => {
       await navigator.clipboard.writeText(content.innerText);
       copyBtn.textContent = "Copiado";
-      setTimeout(() => copyBtn.textContent = "Copiar", 1200);
+      setTimeout(() => {
+        copyBtn.textContent = "Copiar";
+      }, 1200);
     };
 
     div.appendChild(copyBtn);
@@ -131,7 +135,9 @@ async function deleteChat(id) {
       headers: onlyAuthHeader()
     });
 
-    if (currentChatId === id) newChat();
+    if (currentChatId === id) {
+      newChat();
+    }
 
     await loadChats();
   } catch {
@@ -160,14 +166,21 @@ async function openChat(id) {
 
 async function sendMessage() {
   const message = messageInput.value.trim();
+
   if (!message) return;
 
   messageInput.value = "";
+
   addMessage("user", message);
 
   const typing = document.createElement("div");
   typing.className = "typing";
-  typing.innerHTML = `<span></span><span></span><span></span>`;
+  typing.innerHTML = `
+    <span></span>
+    <span></span>
+    <span></span>
+  `;
+
   chatContainer.appendChild(typing);
   scrollBottom();
 
@@ -199,21 +212,29 @@ async function sendMessage() {
 
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) break;
 
       let chunk = decoder.decode(value);
+
       const match = chunk.match(/\[\[CHAT_ID:(\d+)\]\]/);
 
       if (match) {
         currentChatId = Number(match[1]);
-        chunk = chunk.replace(/\n?\[\[CHAT_ID:\d+\]\]/, "");
+
+        chunk = chunk.replace(
+          /\n?\[\[CHAT_ID:\d+\]\]/,
+          ""
+        );
       }
 
       fullText += chunk;
 
-      botContent.innerHTML = window.marked
-        ? marked.parse(fullText)
-        : fullText;
+      if (window.marked) {
+        botContent.innerHTML = marked.parse(fullText);
+      } else {
+        botContent.textContent = fullText;
+      }
 
       scrollBottom();
     }
@@ -239,8 +260,31 @@ function newChat() {
     <div class="welcome">
       <h1>🌀 VORTEX AI</h1>
       <p>Comece uma nova conversa.</p>
+
+      <div class="quick-actions">
+        <button onclick="quickPrompt('Crie um código HTML CSS e JavaScript moderno')">
+          💻 Criar código
+        </button>
+
+        <button onclick="quickPrompt('Explique este assunto de forma simples')">
+          📚 Explicar matéria
+        </button>
+
+        <button onclick="quickPrompt('Escreva um texto profissional sobre')">
+          ✍️ Escrever texto
+        </button>
+
+        <button onclick="quickPrompt('Me dê ideias criativas para')">
+          🚀 Gerar ideias
+        </button>
+      </div>
     </div>
   `;
+}
+
+function quickPrompt(text) {
+  messageInput.value = text;
+  messageInput.focus();
 }
 
 function logout() {
@@ -254,19 +298,24 @@ function toggleSidebar() {
 }
 
 messageInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
+  if (e.key === "Enter") {
+    sendMessage();
+  }
 });
 
 searchInput.addEventListener("input", () => {
   const term = searchInput.value.toLowerCase().trim();
+
   const filtered = allChats.filter(chat =>
     (chat.title || "").toLowerCase().includes(term)
   );
+
   renderChats(filtered);
 });
 
 fileInput.addEventListener("change", async () => {
   const file = fileInput.files[0];
+
   if (!file) return;
 
   const formData = new FormData();
@@ -290,6 +339,7 @@ fileInput.addEventListener("change", async () => {
 
     uploadedText = data.text || "";
     uploadedFileName = data.filename || file.name;
+
     filePreview.textContent = `Arquivo anexado: ${uploadedFileName}`;
   } catch {
     filePreview.textContent = "Erro upload.";
@@ -300,6 +350,7 @@ window.sendMessage = sendMessage;
 window.newChat = newChat;
 window.logout = logout;
 window.toggleSidebar = toggleSidebar;
+window.quickPrompt = quickPrompt;
 
 newChat();
 loadChats();

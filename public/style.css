@@ -488,3 +488,14 @@ body{
 .copy-response:hover{
   background:#262647;
 }
+.copy-response{
+  margin-top:8px;
+  margin-left:48px;
+  border:none;
+  background:#1b1b31;
+  color:#c4b5fd;
+  padding:6px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:12px;
+}

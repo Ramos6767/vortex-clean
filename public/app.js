@@ -399,3 +399,38 @@ window.startVoice = startVoice;
 
 newChat();
 loadChats();
+function openSettings() {
+  document.getElementById("settingsModal").style.display = "flex";
+}
+
+function closeSettings() {
+  document.getElementById("settingsModal").style.display = "none";
+}
+
+function editProfile() {
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
+  alert(
+    `👤 Perfil\n\nNome: ${user.name || "Gabriel"}\nEmail: ${user.email || "Não informado"}`
+  );
+}
+
+async function clearAllChats() {
+
+  const ok = confirm(
+    "Deseja apagar todas as conversas?"
+  );
+
+  if (!ok) return;
+
+  alert(
+    "Por enquanto use a lixeira individual. A limpeza total será adicionada depois."
+  );
+}
+
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.editProfile = editProfile;
+window.clearAllChats = clearAllChats;

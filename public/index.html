@@ -7,9 +7,7 @@
   <title>VORTEX AI</title>
 
   <link rel="stylesheet" href="/style.css" />
-
   <link rel="manifest" href="/manifest.json">
-
   <meta name="theme-color" content="#7c3aed">
 </head>
 
@@ -61,6 +59,8 @@
             <div class="online">● Online</div>
           </div>
         </div>
+
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
       </header>
 
       <div class="chat-container" id="chatContainer"></div>
@@ -68,7 +68,6 @@
       <div class="file-preview" id="filePreview"></div>
 
       <div class="chat-input">
-
         <button
           class="attach-btn"
           onclick="document.getElementById('fileInput').click()"
@@ -76,10 +75,7 @@
           📎
         </button>
 
-        <button
-          class="mic-btn"
-          onclick="startVoice()"
-        >
+        <button class="mic-btn" onclick="startVoice()">
           🎤
         </button>
 
@@ -96,37 +92,34 @@
           placeholder="Digite sua mensagem..."
         />
 
-        <button
-          class="send-btn"
-          onclick="sendMessage()"
-        >
+        <button class="send-btn" onclick="sendMessage()">
           ➤
         </button>
-
       </div>
-
     </main>
+  </div>
 
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-box">
+      <h2>⚙️ Configurações</h2>
+
+      <button onclick="editProfile()">👤 Meu Perfil</button>
+      <button onclick="clearAllChats()">🗑 Limpar Conversas</button>
+      <button onclick="logout()">🚪 Sair</button>
+      <button onclick="closeSettings()">Fechar</button>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
   <script src="/app.js"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
-
       navigator.serviceWorker
         .register("/service-worker.js")
-        .then(() => {
-          console.log("PWA ativo");
-        })
-        .catch(err => {
-          console.error("Erro PWA:", err);
-        });
-
+        .then(() => console.log("PWA ativo"))
+        .catch(err => console.error("Erro PWA:", err));
     }
   </script>
-
 </body>
 </html>

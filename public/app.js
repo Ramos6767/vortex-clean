@@ -250,8 +250,7 @@ async function openChat(id) {
 
 async function sendMessage() {
 
-  const message =
-    messageInput.value.trim();
+  const message = messageInput.value.trim();
 
   if (!message) return;
 
@@ -259,11 +258,25 @@ async function sendMessage() {
 
   addMessage("user", message);
 
-  const botContent =
-    addMessage(
-      "assistant",
-      "Pensando..."
-    );
+  /* =========================
+     TYPING
+  ========================= */
+
+  const typing = document.createElement("div");
+
+  typing.className = "typing";
+
+  typing.innerHTML = `
+    <span></span>
+    <span></span>
+    <span></span>
+  `;
+
+  chatContainer.appendChild(typing);
+
+  scrollBottom();
+
+  let botContent = null;
 
   try {
 
@@ -295,8 +308,12 @@ ${uploadedText}
 
     if (!res.ok) {
 
-      botContent.textContent =
-        "Erro ao conectar com a Vortex.";
+      typing.remove();
+
+      addMessage(
+        "assistant",
+        "Erro ao conectar com a Vortex."
+      );
 
       return;
 
@@ -310,7 +327,15 @@ ${uploadedText}
 
     let fullText = "";
 
-    botContent.textContent = "";
+    /* REMOVE TYPING */
+
+    typing.remove();
+
+    botContent =
+      addMessage(
+        "assistant",
+        ""
+      );
 
     while (true) {
 
@@ -368,8 +393,12 @@ ${uploadedText}
 
   } catch {
 
-    botContent.textContent =
-      "Erro ao conectar com a Vortex.";
+    typing.remove();
+
+    addMessage(
+      "assistant",
+      "Erro ao conectar com a Vortex."
+    );
 
   }
 
